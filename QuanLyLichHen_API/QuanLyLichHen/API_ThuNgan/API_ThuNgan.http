@@ -1,6 +1,0 @@
-@API_ThuNgan_HostAddress = http://localhost:5100
-
-GET {{API_ThuNgan_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
