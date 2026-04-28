@@ -22,6 +22,7 @@ const BookingPage = () => {
     const { searchTerm } = useSearch();
 
 
+    const quyenHientai = localStorage.getItem('phanquyen') || 0;
 
     //Dữ liệu
     const [bookingList, setBookingList] = useState<Booking[]>([]);
@@ -54,6 +55,11 @@ const BookingPage = () => {
         giadukien: '',
         nhanvien: '',
         ghichu: '',
+    });
+
+    const [formDataTK, setFormDataTK] = useState({
+        start: '',
+        end: ''
     });
 
     const filteredBookingList = bookingList.filter(lichhen =>
@@ -177,6 +183,7 @@ const BookingPage = () => {
         const { id, value } = e.target;
         // Cập nhật dữ liệu người dùng nhập vào formData
         setFormData((prev) => ({ ...prev, [id]: value }));
+        setFormDataTK((prev) => ({ ...prev, [id]: value }));
 
         //Tự động xóa lỗi của chính field đang được gõ
         if (formErrors[id]) {
@@ -340,9 +347,15 @@ const BookingPage = () => {
     // xoá
     const handleDeleteConfirm = async () => {
         if (!idToDelete) return;
+        if (quyenHientai !== '1' && quyenHientai !== '2') {
+            toast.error("Bạn không có quyền xóa lịch hẹn!");
+            return;
+        }
+        
         try {
             //chỉ xoá những lịch đã huỷ
             const lichHen = bookingList.find(b => b.MALICH?.trim() === idToDelete?.trim());
+            
             if (lichHen?.TRANGTHAI?.trim() !== "Đã huỷ") {
                 toast.error("Chỉ có thể xóa những lịch hẹn đã huỷ!");
                 return;
@@ -522,7 +535,7 @@ const BookingPage = () => {
         }
         //tìm lịch đã được khách chọn nhân viên thực hiện trong ngày đó
         const bookedIdsForStaff = bookingDetailsList
-            .filter(detail => detail.MANV === formData.nhanvien)
+            .filter(detail => detail.MANV?.trim() === formData.nhanvien)
             .map(detail => detail.MALICH?.trim());
 
         //lọc ra những lịch ngày đó, chưa huỷ hoặc chưa hoàn thành và có nhân viên thực hiện trùng với nhân viên đang chọn
@@ -556,6 +569,45 @@ const BookingPage = () => {
         return hours;
     }, [formData.nhanvien, formData.bookingDate, bookingList, bookingDetailsList]);
 
+    const handleClickReport = async () => {
+        //e.preventDefault();
+        try {
+            if (!formDataTK.start || !formDataTK.end) {
+                toast.warn("Hãy chọn ngày cần lọc!");
+                return;
+            }
+            const ngaybd = formDataTK.start.toString();
+            const ngaykt = formDataTK.end.toString();
+            //console.log(ngaybd);
+            //console.log(ngaykt);
+            if (ngaybd > ngaykt) {
+                toast.warn("Ngày bắt đầu lọc phải nhỏ hơn ngày kết thúc!");
+                return;
+            }
+            const resLichByNgay = await bookingApi.getByNgay(formDataTK.start, formDataTK.end)
+
+            if (resLichByNgay.data.success && resLichByNgay.data.data) {
+                setBookingList(resLichByNgay.data.data);
+            } else {
+                setBookingList([]); // Không có reset về rỗng
+            }
+
+
+            toast.success('Lọc theo ngày thành công!');
+        }
+        catch (error) {
+            console.error("Lỗi khi lọc theo ngày:", error);
+            toast.error("Có lỗi xảy ra khi tải dữ liệu!");
+        }
+    }
+    const handleClickRefresh = async () => {
+        setFormDataTK({
+            start: '',
+            end: ''
+        })
+        await fetchData();
+        toast.success('Làm mới thành công!');
+    }
     //HÀM RENDER FORM CHUNG CHO CẢ THÊM VÀ SỬA
     const renderFormContent = () => (
         <>
@@ -675,6 +727,24 @@ const BookingPage = () => {
                 <div className="panel header-actions">
                     <h2>Lịch hẹn</h2>
                     <button className="btn primary" onClick={handleOpenAdd}>Thêm lịch hẹn</button>
+                </div>
+                <div className="panel">
+                    <div className="reportDate-form">
+                        <div className="form-group reportDate">
+                            <label>Từ ngày:</label>
+                            <input value={formDataTK.start} onChange={handleChange} type="date" id="start" />
+                        </div>
+                        <div className="form-group reportDate">
+                            <label>Đến ngày:</label>
+                            <input value={formDataTK.end} onChange={handleChange} type="date" id="end" />
+                        </div>
+                        <button onClick={handleClickReport} className="btn primary">
+                            <i className="fas fa-filter"></i> Xem lịch hẹn theo ngày
+                        </button>
+                        <button onClick={handleClickRefresh} className="btn secondary">
+                            <i className="fas fa-sync"></i> Làm mới
+                        </button>
+                    </div>
                 </div>
                 {/* CHỈ RENDER KHU VỰC NÀY NẾU IDtoView CÓ GIÁ TRỊ */}
                 {IDtoView && (

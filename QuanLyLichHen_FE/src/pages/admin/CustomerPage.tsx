@@ -162,25 +162,6 @@ const CustomerPage: React.FC = () => {
                     toast.error("Tài khoản (SĐT) này đã tồn tại!");
                     return;
                 }
-
-                let isExistTK = false;
-                try {
-                    const checkExistTK = await taikhoanApi.getById(formData.cusPhone);
-                    if (checkExistTK && checkExistTK.data.success) {
-                        isExistTK = true;
-                    }
-                } catch (err: any) {
-                    if (err.response && err.response.status === 404) {
-                        isExistTK = false;
-                    } else {
-                        throw err;
-                    }
-                }
-
-                if (isExistTK) {
-                    toast.error("Tài khoản đã tồn tại!");
-                    return;
-                }
                 const taikhoanResult = await taikhoanApi.create(submitDataTK);
                 if (taikhoanResult.data.success) {
                     await customerApi.create(submitData);

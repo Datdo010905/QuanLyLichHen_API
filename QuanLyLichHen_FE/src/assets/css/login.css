@@ -11,7 +11,13 @@
   justify-content: center;
   align-items: center;
 }
-
+.doimatkhau-page {
+  background: white;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .login-container {
   display: flex;
   width: 1000px;
@@ -21,7 +27,15 @@
   overflow: hidden;
   box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
 }
-
+.doimatkhau-container {
+  display: flex;
+  width: 1000px;
+  height: 600px;
+  background: #fff;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+}
 /* Bên trái */
 .login-left {
   flex: 1;
@@ -32,13 +46,26 @@
   justify-content: center;
   align-items: center;
 }
-
+/* Bên trái */
+.doimatkhau-left {
+  flex: 1;
+  background: rgb(129, 138, 218);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 .login-left .logo {
   width: 150px;
   height: auto;
   margin-bottom: 20px;
 }
-
+.doimatkhau-left .logo {
+  width: 150px;
+  height: auto;
+  margin-bottom: 20px;
+}
 .login-left h2 {
   font-size: 20px;
   text-align: center;
@@ -54,14 +81,32 @@
   flex-direction: column;
   justify-content: center;
 }
-
+/* Bên phải */
+.doimatkhau-right {
+  flex: 1;
+  padding: 50px 60px;
+  flex-direction: column;
+  display: flex;
+  justify-content: center;
+}
 .login-right h1 {
   font-size: 28px;
   margin-bottom: 30px;
   color: #173691;
   text-align: center;
 }
-
+.login-right h1 {
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #173691;
+  text-align: center;
+}
+.doimatkhau-right h1 {
+  font-size: 28px;
+  margin-top: 0px;
+  color: #173691;
+  text-align: center;
+}
 .login-page label {
   display: block;
   margin-bottom: 8px;
@@ -71,6 +116,12 @@
 
 .login-page label span {
   color: red;
+}
+.doimatkhau-page label {
+  display: block;
+  margin-bottom: 8px;
+  color: #444;
+  font-weight: 600;
 }
 
 .login-page input {
@@ -83,10 +134,23 @@
   outline: none;
   transition: 0.3s;
 }
-
-.login-pageinput:focus {
+.doimatkhau-page input {
+  width: 100%;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  transition: 0.3s;
+}
+.login-page input:focus {
   border-color: #222;
 }
+.doimatkhau-page input:focus {
+  border-color: #222;
+}
+
 
 .password-container {
   position: relative;
@@ -115,7 +179,21 @@
 .login-page button:hover {
   background: linear-gradient(to right, #3a498a, #03113e);
 }
+.doimatkhau-page button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(to right, #3a498a, #173691);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+}
 
+.doimatkhau-page button:hover {
+  background: linear-gradient(to right, #3a498a, #03113e);
+}
 .extra-links {
   text-align: center;
   margin-top: 15px;
@@ -164,7 +242,7 @@
     font-size: 24px;
   }
 
-  .login-pageinput {
+  .login-page input {
     font-size: 14px;
     padding: 8px 12px;
   }

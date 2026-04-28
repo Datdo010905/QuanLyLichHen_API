@@ -86,7 +86,11 @@ input:focus {
     margin-left: 10px;
     padding: 5px 0;
 }
-
+#a_log span:hover {
+    text-decoration: underline;
+    cursor: pointer;
+    color: #0d92f1;
+}
 #icon_social,
 #icon_l,
 #login {
@@ -1099,7 +1103,16 @@ html {
     transition: all 0.3s ease;
     width: 300px;
 }
-
+.input-infor {
+    flex: 1;
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 14px;
+    color: #333;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    width: 130px;
+}
 .input-field {
     width: 100%;
     padding: 10px;

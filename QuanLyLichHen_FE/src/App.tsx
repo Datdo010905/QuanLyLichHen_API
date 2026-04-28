@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Profiler } from 'react';
 import { Route, Routes, Outlet } from 'react-router-dom';
 //import css
 import './assets/css/style.css';
@@ -24,6 +24,7 @@ import Signup from './pages/client/SignupPage';
 import DatLichPage from './pages/client/DatLichPage';
 import LichSuPage from './pages/client/LichSuPage';
 import DichVuDetailsPage from './pages/client/DichVuDetailsPage';
+import ProfilePage from './pages/client/ProfilePage';
 
 //import layout admin
 import AdminLayout from './components/layout/AdminLayout';
@@ -66,7 +67,7 @@ class App extends React.Component<any, any> {
     { url: "/about", name: "Về 30Shine" },
     //{ url: "#timmap", name: "30Shine gần nhất", href: "#timmap" },
     //{ url: "#nucuoidv", name: "Nụ cười dịch vụ", href: "#nucuoidv" },
-   // { url: "#cuocthi", name: "Cuộc thi 30Shine", href: "#cuocthi" },
+    // { url: "#cuocthi", name: "Cuộc thi 30Shine", href: "#cuocthi" },
     //{ url: "#saotoasang", name: "Sao toả sáng", href: "#saotoasang" },
   ];
   render(): React.ReactNode {
@@ -81,14 +82,31 @@ class App extends React.Component<any, any> {
         <Route element={<PrivateRoute allowedRoles={[1, 2, 3, 4, 5]} />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="accounts" element={<AccountsPage />} />
-            <Route path="promotions" element={<KhuyenMaiPage />} />
-            <Route path="services" element={<DichVuPage />} />
-            <Route path="customers" element={<CustomerPage />} />
-            <Route path="staff" element={<StaffPage />} />
-            <Route path="bookings" element={<BookingPage />} />
-            <Route path="invoices" element={<HoaDonPage />} />
-            <Route path="reports" element={<ReportPage />} />
+
+
+            <Route element={<PrivateRoute allowedRoles={[1]} />}>
+              <Route path="accounts" element={<AccountsPage />} />
+              <Route path="promotions" element={<KhuyenMaiPage />} />
+            </Route>
+
+
+            <Route element={<PrivateRoute allowedRoles={[1, 2]} />}>
+              <Route path="services" element={<DichVuPage />} />
+              <Route path="customers" element={<CustomerPage />} />
+              <Route path="staff" element={<StaffPage />} />
+              <Route path="reports" element={<ReportPage />} />
+            </Route>
+
+
+            <Route element={<PrivateRoute allowedRoles={[1, 2, 3, 5]} />}>
+              <Route path="bookings" element={<BookingPage />} />
+            </Route>
+
+
+            <Route element={<PrivateRoute allowedRoles={[1, 2, 4]} />}>
+              <Route path="invoices" element={<HoaDonPage />} />
+            </Route>
+
           </Route>
         </Route>
         {/* === ROUTE CHO KHU VỰC CLIENT === */}
@@ -100,6 +118,7 @@ class App extends React.Component<any, any> {
           <Route path="/datlich" element={<DatLichPage />} />
           <Route path="/lichsu" element={<LichSuPage />} />
           <Route path="/dichvuchitiet/:madv" element={<DichVuDetailsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
 
       </Routes>

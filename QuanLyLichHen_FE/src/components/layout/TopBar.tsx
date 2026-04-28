@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext'; // Lấy hook ra để sử dụng trong component
 import {toast} from 'react-toastify';
 const TopBar = () => {
@@ -61,7 +61,7 @@ const TopBar = () => {
 								{/* KIỂM TRA ĐIỀU KIỆN HIỂN THỊ */}
 								{user ? (
 									<>
-										<span> {user.username} </span>
+										<Link to="/profile"><span> {user.username} </span></Link>
 										<button className = "logout-btn"onClick={handleLogout}><i className="fas fa-right-from-bracket"></i></button>
 									</>
 								) : (

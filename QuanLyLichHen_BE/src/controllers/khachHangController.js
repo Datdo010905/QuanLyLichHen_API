@@ -45,9 +45,6 @@ const update = async (req, res) => {
         const data = req.body;
         const sdt = data.SDT || data.sdt;
 
-        const isTrungSDT = await khachHangService.checkSDTTonTai(id, sdt);
-        if (isTrungSDT) return res.status(400).json({ success: false, message: "Số điện thoại này đã có người dùng!" });
-
         const updatedData = await khachHangService.updateKhachHang(id, data);
         return res.status(200).json({ success: true, message: "Cập nhật thành công!", data: updatedData });
     } catch (error) {

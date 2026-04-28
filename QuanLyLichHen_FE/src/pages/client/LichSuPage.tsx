@@ -1,5 +1,5 @@
 import "../../assets/css/lichsu.css";
-import {Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import React, { useEffect, useState } from "react";
 import Modal from "../../components/ui/Modal";
 import { toast } from 'react-toastify';
@@ -44,7 +44,10 @@ const LichSuPage = () => {
 		nhanvien: '',
 		ghichu: '',
 	});
-
+	const [formDataTK, setFormDataTK] = useState({
+		start: '',
+		end: ''
+	});
 	//up data từ api lên bảng
 	const fetchData = async () => {
 		try {
@@ -83,10 +86,10 @@ const LichSuPage = () => {
 			const checkDangCho = bookingList.filter(lh => lh.TRANGTHAI.trim() === "Đang chờ");
 
 			if (checkDangCho.length > 0) {
-            toast.info("Bạn có lịch hẹn đã được duyệt, hãy đến dùng dịch vụ!", {
-                toastId: 'thong-bao-dang-cho' //chỉ hiện 1 lần dù có nhiều lịch hẹn đang chờ
-            });
-        }
+				toast.info("Bạn có lịch hẹn đã được duyệt, hãy đến dùng dịch vụ!", {
+					toastId: 'thong-bao-dang-cho' //chỉ hiện 1 lần dù có nhiều lịch hẹn đang chờ
+				});
+			}
 		}
 	}, [bookingList]); // Chạy khi bookingList thay đổi
 
@@ -152,6 +155,7 @@ const LichSuPage = () => {
 		const { id, value } = e.target;
 		// Cập nhật dữ liệu người dùng nhập vào formData
 		setFormDataDetails((prev) => ({ ...prev, [id]: value }));
+		setFormDataTK((prev) => ({ ...prev, [id]: value }));
 	};
 	const handleDeleteClick = (row: Booking) => {
 		setFormData({
@@ -212,22 +216,22 @@ const LichSuPage = () => {
 	const bookingColumns: Column<Booking>[] = [
 		{ tieude: "ID", cotnhandulieu: "MALICH" },
 		{ tieude: "Ngày hẹn", cotnhandulieu: "NGAYHEN", render: (row) => row.NGAYHEN ? new Date(row.NGAYHEN).toLocaleDateString('vi-VN') : '' },
-		 {
-            tieude: "Giờ hẹn",
-            cotnhandulieu: "GIOHEN",
-            render: (row) => {
-                if (!row.GIOHEN) return "";
+		{
+			tieude: "Giờ hẹn",
+			cotnhandulieu: "GIOHEN",
+			render: (row) => {
+				if (!row.GIOHEN) return "";
 
-                // chuỗi có chứa chữ 'T' (dạng ISO 1970-01-01T09:00:00...)
-                if (row.GIOHEN.includes('T')) {
-                    //Tách chuỗi lấy đoạn giữa (09:00)
-                    return row.GIOHEN.split('T')[1].substring(0, 5);
-                }
+				// chuỗi có chứa chữ 'T' (dạng ISO 1970-01-01T09:00:00...)
+				if (row.GIOHEN.includes('T')) {
+					//Tách chuỗi lấy đoạn giữa (09:00)
+					return row.GIOHEN.split('T')[1].substring(0, 5);
+				}
 
-                // Nếu dạng 09:00:00 lấy 5 ký tự đầu
-                return row.GIOHEN.substring(0, 5);
-            }
-        },
+				// Nếu dạng 09:00:00 lấy 5 ký tự đầu
+				return row.GIOHEN.substring(0, 5);
+			}
+		},
 		{
 			tieude: "Trạng thái", cotnhandulieu: "TRANGTHAI", render: (row) => {
 				const style = statusStyles[row.TRANGTHAI?.trim() || ''] || {};
@@ -298,11 +302,69 @@ const LichSuPage = () => {
 		},
 		{ tieude: "Ghi chú", cotnhandulieu: "GHICHU" },
 	];
+	const handleClickReport = async () => {
+		//e.preventDefault();
+		try {
+			if (!formDataTK.start || !formDataTK.end) {
+				toast.warn("Hãy chọn ngày cần lọc!");
+				return;
+			}
+			const ngaybd = formDataTK.start.toString();
+			const ngaykt = formDataTK.end.toString();
+			//console.log(ngaybd);
+			//console.log(ngaykt);
+			if (ngaybd > ngaykt) {
+				toast.warn("Ngày bắt đầu lọc phải nhỏ hơn ngày kết thúc!");
+				return;
+			}
+			const resLichByNgay = await bookingApi.getByNgay(formDataTK.start, formDataTK.end)
+
+			if (resLichByNgay.data.success && resLichByNgay.data.data) {
+				setBookingList(resLichByNgay.data.data);
+			} else {
+				setBookingList([]); // Không có reset về rỗng
+			}
+
+
+			toast.success('Lọc theo ngày thành công!');
+		}
+		catch (error) {
+			console.error("Lỗi khi lọc theo ngày:", error);
+			toast.error("Có lỗi xảy ra khi tải dữ liệu!");
+		}
+	}
+	const handleClickRefresh = async () => {
+		setFormDataTK({
+			start: '',
+			end: ''
+		})
+		await fetchData();
+		toast.success('Làm mới thành công!');
+	}
+
 	return (
 		<>
 			<div id="lichsu-container">
 				<div className="lichsu-box">
 					<h1>LỊCH SỬ LỊCH HẸN CỦA BẠN</h1>
+					<div className="panel">
+						<div className="reportDate-form">
+							<div className="form-group reportDate">
+								<label>Từ ngày:</label>
+								<input value={formDataTK.start} onChange={handleChange} type="date" id="start" />
+							</div>
+							<div className="form-group reportDate">
+								<label>Đến ngày:</label>
+								<input value={formDataTK.end} onChange={handleChange} type="date" id="end" />
+							</div>
+							<button onClick={handleClickReport} className="btn primary">
+								<i className="fas fa-filter"></i> Xem lịch hẹn theo ngày
+							</button>
+							<button onClick={handleClickRefresh} className="btn secondary">
+								<i className="fas fa-sync"></i> Làm mới
+							</button>
+						</div>
+					</div>
 
 					<table className="lichsu-table">
 						<DataTable<Booking> columns={bookingColumns} data={bookingList} />

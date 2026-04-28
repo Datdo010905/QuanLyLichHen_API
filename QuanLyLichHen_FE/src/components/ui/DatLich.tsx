@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
-import CustomerApi, { Customer } from "../../api/customerApi";
-import { Route, Routes, Outlet, Navigate } from 'react-router-dom';
-import { Link, useNavigate } from "react-router-dom";
+import CustomerApi from "../../api/customerApi";
+import {useNavigate } from "react-router-dom";
 import { toast } from 'react-toastify';
-import { get } from "http";
 const Datlich = () => {
   const [sdt, setSDT] = useState("");
   const navigate = useNavigate();

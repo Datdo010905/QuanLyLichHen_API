@@ -157,14 +157,14 @@ const DatLichPage = () => {
 			if (loggedUser) {
 				//tìm tk
 				const resTaiKhoan = await TaiKhoanApi.getById(loggedUser);
-				console.log("Thông tin tài khoản:", resTaiKhoan);
+				//console.log("Thông tin tài khoản:", resTaiKhoan);
 				const thongTinTaiKhoan = resTaiKhoan.data.data;
-				console.log("Thông tin tài khoản sau khi lấy:", thongTinTaiKhoan);
+				//console.log("Thông tin tài khoản sau khi lấy:", thongTinTaiKhoan);
 				//check mk
 				if (thongTinTaiKhoan.PASS.trim() !== matkhauCheck.trim()) {
 					toast.error("Mật khẩu không chính xác! Vui lòng thử lại.");
-					console.log("Mật khẩu nhập vào:", matkhauCheck);
-					console.log("Mật khẩu thực tế:", thongTinTaiKhoan.PASS);
+					// console.log("Mật khẩu nhập vào:", matkhauCheck);
+					// console.log("Mật khẩu thực tế:", thongTinTaiKhoan.PASS);
 
 					return;
 				}

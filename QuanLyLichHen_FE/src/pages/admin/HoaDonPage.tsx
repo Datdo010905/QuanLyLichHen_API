@@ -20,6 +20,7 @@ const HoaDonPage = () => {
     const [IDtoView, setIDtoView] = useState<string | null>(null); // Lưu ID cần xem chi tiết
     const today = new Date().toISOString().split('T')[0];
 
+    const quyenHientai = localStorage.getItem('phanquyen') || 0;
     //State dùng chung cho tìm kiếm
     const { searchTerm } = useSearch();
     //Dữ liệu
@@ -121,6 +122,10 @@ const HoaDonPage = () => {
         dongiadv: '',
         thanhtiendv: '',
     });
+    const [formDataTK, setFormDataTK] = useState({
+        start: '',
+        end: ''
+    });
     // Chuẩn bị form rỗng khi Thêm 
     const handleOpenAdd = () => {
         setFormData({
@@ -151,6 +156,7 @@ const HoaDonPage = () => {
         // Cập nhật dữ liệu người dùng nhập vào formData
         setFormData((prev) => ({ ...prev, [id]: value }));
         setFormDataDetails((prev) => ({ ...prev, [id]: value }));
+        setFormDataTK((prev) => ({ ...prev, [id]: value }));
 
         //Tự động xóa lỗi của chính field đang được gõ
         if (formErrors[id]) {
@@ -342,6 +348,10 @@ const HoaDonPage = () => {
     // xoá
     const handleDeleteConfirm = async () => {
         if (!idToDelete) return;
+        if (quyenHientai !== '1' && quyenHientai !== '2') {
+            toast.error("Bạn không có quyền xóa hoá đơn!");
+            return;
+        }
         try {
             //chỉ xoá những hoá đơn đã huỷ
             const hoadon = hoadonList.find(b => b.MAHD.trim() === idToDelete.trim());
@@ -737,6 +747,45 @@ const HoaDonPage = () => {
         },
     ];
 
+    const handleClickReport = async () => {
+        //e.preventDefault();
+        try {
+            if (!formDataTK.start || !formDataTK.end) {
+                toast.warn("Hãy chọn ngày cần lọc!");
+                return;
+            }
+            const ngaybd = formDataTK.start.toString();
+            const ngaykt = formDataTK.end.toString();
+            //console.log(ngaybd);
+            //console.log(ngaykt);
+            if (ngaybd > ngaykt) {
+                toast.warn("Ngày bắt đầu lọc phải nhỏ hơn ngày kết thúc!");
+                return;
+            }
+            const resHoaDonTheoNgay = await hoadonApi.getByNgay(formDataTK.start, formDataTK.end)
+
+            if (resHoaDonTheoNgay.data.success && resHoaDonTheoNgay.data.data) {
+                setHoadonList(resHoaDonTheoNgay.data.data);
+            } else {
+                setHoadonList([]); // Không có reset về rỗng
+            }
+
+
+            toast.success('Lọc theo ngày thành công!');
+        }
+        catch (error) {
+            console.error("Lỗi khi lọc theo ngày:", error);
+            toast.error("Có lỗi xảy ra khi tải dữ liệu!");
+        }
+    }
+    const handleClickRefresh = async () => {
+        setFormDataTK({
+            start: '',
+            end: ''
+        })
+        await fetchData();
+        toast.success('Làm mới thành công!');
+    }
     return (
         <>
             <div id="invoices" className="section">
@@ -747,6 +796,24 @@ const HoaDonPage = () => {
                 {/* <div className="panel">
                     <DataTable<HoaDonDetails> columns={hoadonDetailsColumns} data={hoadonDetailsList} isLoading={isLoading} />
                 </div> */}
+                <div className="panel">
+                    <div className="reportDate-form">
+                        <div className="form-group reportDate">
+                            <label>Từ ngày:</label>
+                            <input value={formDataTK.start} onChange={handleChange} type="date" id="start" />
+                        </div>
+                        <div className="form-group reportDate">
+                            <label>Đến ngày:</label>
+                            <input value={formDataTK.end} onChange={handleChange} type="date" id="end" />
+                        </div>
+                        <button onClick={handleClickReport} className="btn primary">
+                            <i className="fas fa-filter"></i> Xem hoá đơn theo ngày
+                        </button>
+                        <button onClick={handleClickRefresh} className="btn secondary">
+                            <i className="fas fa-sync"></i> Làm mới
+                        </button>
+                    </div>
+                </div>
                 {/* CHỈ RENDER KHU VỰC NÀY NẾU IDtoView CÓ GIÁ TRỊ */}
                 {IDtoView && (
                     <div id="booking-details" className="booking-details" style={{ display: 'block' }}>

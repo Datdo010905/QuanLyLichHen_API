@@ -546,7 +546,11 @@ textarea {
   gap: 15px;
   align-items: flex-end;
 }
-
+.reportDate-form {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end;
+}
 .reportDate {
   margin-bottom: 0;
   width: auto;
