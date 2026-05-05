@@ -37,8 +37,13 @@ const TaiKhoanApi = {
     delete(id: string) {
         const url = `/api/taikhoan/delete-taikhoan/${id}`;
         return axiosClient.delete(url);
-    }
+    },
 
+    //quên mật khẩu
+    forgotPassword(data: { sdt: string; email: string }) {
+        const url = '/api/taikhoan/forgot-password';
+        return axiosClient.post(url, data);
+    }
 
 };
 

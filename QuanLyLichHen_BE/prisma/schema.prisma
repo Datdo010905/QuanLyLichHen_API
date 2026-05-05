@@ -78,6 +78,7 @@ model KHACHHANG {
   HOTEN    String    @db.NVarChar(100)
   SDT      String    @unique(map: "UQ__KHACHHAN__CA1930A504BBA962") @db.Char(10)
   MATK     String?   @unique(map: "UQ__KHACHHAN__60237217F7EA2E0D") @db.Char(20)
+  EMAIL    String?   @db.NVarChar(100)
   HOADON   HOADON[]
   TAIKHOAN TAIKHOAN? @relation(fields: [MATK], references: [MATK], onDelete: NoAction, onUpdate: NoAction, map: "FK__KHACHHANG__MATK__0880433F")
   LICHHEN  LICHHEN[]

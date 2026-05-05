@@ -20,7 +20,6 @@ const LichSuPage = () => {
 
 	//Dữ liệu
 	const [bookingList, setBookingList] = useState<Booking[]>([]);
-	const [bookingDetailsList, setBookingDetailsList] = useState<BookingDetails[]>([]);
 	const [dichVuList, setDichVuList] = useState<DichVu[]>([]);
 	const [nhanVienList, setNhanVienList] = useState<NhanVien[]>([]);
 
@@ -57,9 +56,7 @@ const LichSuPage = () => {
 				setBookingList(resBooking.data.data);
 
 				const resBookingDetails = await bookingApi.getAllCT();
-				if (resBookingDetails.data.success) {
-					setBookingDetailsList(resBookingDetails.data.data);
-				}
+
 				const resDichVu = await dichVuApi.getAll();
 				const resNhanVien = await staffApi.getAll();
 				if (resDichVu.data.success) {

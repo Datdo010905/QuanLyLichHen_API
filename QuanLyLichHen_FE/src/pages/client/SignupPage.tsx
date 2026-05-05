@@ -3,12 +3,15 @@ import "../../assets/css/login.css";
 import { Link, useNavigate } from "react-router-dom";
 import authApi from "../../api/authApi"; // Đảm bảo bạn có hàm signup trong authApi
 import { toast } from "react-toastify";
+import customerApi from "../../api/customerApi";
 
 const Signup = () => {
     const [fullName, setFullName] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [rePassword, setRePassword] = useState("");
+
+    const [email, setEmail] = useState("");
 
     const [showPwd, setShowPwd] = useState(false);
     const [showRePwd, setShowRePwd] = useState(false);
@@ -32,45 +35,30 @@ const Signup = () => {
             // submitData.append('Pass', password);
             // submitData.append('TrangThai', 'Hoạt động');
             // submitData.append('phanQuyen', '0');
-            const submitData = {
-                MATK: username,
-                PASS: password,
-                PHANQUYEN: 0,
-                TRANGTHAI: 'Hoạt động'
-            };
-            //KHACHHANG
 
+            //KHACHHANG
             // const submitDataKH = new FormData();
             // submitDataKH.append('MaKH', username);
             // submitDataKH.append('HoTen', fullName);
             // submitDataKH.append('SDT', username);
             // submitDataKH.append('MaTK', username);
 
-            const submitDataKH = {
-                MAKH: username,
+            const combinedData = {
+                MATK: username,
+                PASS: password,
+                PHANQUYEN: 0,
+                TRANGTHAI: "Hoạt động",
                 HOTEN: fullName,
                 SDT: username,
-                MATK: username
+                EMAIL: email
             };
 
-            const response = await authApi.signup(submitData);
-
-            if (!response.data.success) {
-                toast.error(response.data.message || "Đăng ký tài khoản thất bại!");
-                return;
-            }
-
-            const responseKH = await authApi.themKH(submitDataKH);
-
-            if (!responseKH.data.success) {
-                toast.error(responseKH.data.message || "Tạo khách hàng thất bại!");
-                return;
-            }
+            await customerApi.create(combinedData);
             toast.success("Đăng ký tài khoản thành công! Vui lòng đăng nhập.");
             navigate('/login');
 
         } catch (err: any) {
-            toast.error('Lỗi kết nối đến máy chủ. Vui lòng thử lại sau.');
+            toast.error(err.response?.data?.message || "Đăng ký tài khoản thất bại!");
             console.error('Lỗi đăng ký:', err);
         } finally {
             setIsLoading(false);
@@ -115,6 +103,18 @@ const Signup = () => {
                             value={username}
                             maxLength={10}
                             onChange={(e) => setUsername(onlyNumber(e.target.value))}
+                            required
+                        />
+
+                        <label htmlFor="email">
+                            Email <span>*</span>
+                        </label>
+                        <input
+                            id="email"
+                            type="email"
+                            placeholder="Nhập email phục vụ việc quên mật khẩu"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
                         />
 

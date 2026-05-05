@@ -1,7 +1,5 @@
 
 import axiosClient from './axiosClient';
-import { Customer } from './customerApi';
-import { TaiKhoan } from './taikhoanApi';
 
 export interface LoginPayload {
   username: string;
@@ -34,13 +32,6 @@ const authApi = {
       pass: data.password 
     });
   },
-  signup(data: TaiKhoan) {
-        const url = '/api/taikhoan/insert-taikhoan';
-        return axiosClient.post(url, data);
-    },
-  themKH(data: Customer) {
-        return axiosClient.post('/api/khachhang/insert-khachhang', data);
-    },
 };
 
 export default authApi;

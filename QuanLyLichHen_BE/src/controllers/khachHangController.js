@@ -1,5 +1,6 @@
 const khachHangService = require('../services/khachHangService');
-
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const getAll = async (req, res) => {
     try {
         const data = await khachHangService.getAllKhachHang();
@@ -23,19 +24,68 @@ const getByID = async (req, res) => {
     }
 };
 
-const create = async (req, res) => {
-    try {
-        const data = req.body;
-        const maNhanDuoc = data.MAKH || data.makh;
-        
-        // Check mã khách hàng
-        const isExist = await khachHangService.getKhachHangByID(maNhanDuoc);
-        if (isExist) return res.status(400).json({ success: false, message: "Mã hoặc SĐT đã tồn tại!" });
 
-        const newData = await khachHangService.createKhachHang(data);
-        return res.status(201).json({ success: true, message: "Thêm thành công!", data: newData });
+const createCustomerWithAccount = async (req, res) => {
+    try {
+        // Nhận TẤT CẢ data từ Frontend gửi lên trong 1 lần
+        const { MATK, PASS, PHANQUYEN, TRANGTHAI, HOTEN, SDT, EMAIL } = req.body;
+
+        //Check trùng SDT
+        const checkSDT = await prisma.kHACHHANG.findFirst({ where: { SDT: SDT.trim() } });
+        if (checkSDT) {
+            return res.status(400).json({ success: false, message: "Số điện thoại đã tồn tại!" });
+        }
+
+        //Check trùng Email 
+        if (EMAIL) {
+            const checkEmail = await prisma.kHACHHANG.findFirst({ where: { EMAIL: EMAIL.trim() } });
+            if (checkEmail) {
+                return res.status(400).json({ success: false, message: "Email này đã được sử dụng!" });
+            }
+        }
+
+        //TRANSACTION: dùng cả 2 service trong 1 transaction để đảm bảo tính nhất quán dữ liệu
+        const result = await prisma.$transaction(async (tx) => {
+            
+            //Tạo Tài khoản
+            const newTaiKhoan = await tx.tAIKHOAN.create({
+                data: {
+                    MATK: SDT.trim(),
+                    PASS: PASS.trim(),
+                    PHANQUYEN: Number(PHANQUYEN),
+                    TRANGTHAI: TRANGTHAI.trim()
+                }
+            });
+
+            //Tạo Khách hàng
+            const newKhachHang = await tx.kHACHHANG.create({
+                data: {
+                    MAKH: SDT.trim(),
+                    HOTEN: HOTEN.trim(),
+                    SDT: SDT.trim(),
+                    MATK: SDT.trim(),
+                    EMAIL: EMAIL.trim()
+                }
+            });
+
+            // Trả về cả 2 nếu thành công
+            return { newTaiKhoan, newKhachHang };
+        });
+
+        //lưu thành công
+        return res.status(200).json({ 
+            success: true, 
+            message: "Thêm mới tài khoản và khách hàng thành công!",
+            data: result
+        });
+
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        console.error("Lỗi Transaction:", error);
+        // Bắt lỗi Unique của Prisma
+        if (error.code === 'P2002') {
+            return res.status(400).json({ success: false, message: "Dữ liệu bị trùng lặp!" });
+        }
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ, thao tác đã bị hoàn tác!" });
     }
 };
 
@@ -65,4 +115,4 @@ const remove = async (req, res) => {
     }
 };
 
-module.exports = { getAll, getByID, create, update, remove };
+module.exports = { getAll, getByID, createCustomerWithAccount, update, remove };

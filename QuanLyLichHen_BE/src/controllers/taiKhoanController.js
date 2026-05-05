@@ -1,4 +1,7 @@
 const taiKhoanService = require('../services/taiKhoanService');
+const nodemailer = require('nodemailer');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 const getAll = async (req, res) => {
     try {
@@ -78,4 +81,65 @@ const remove = async (req, res) => {
     }
 };
 
-module.exports = { getAll, getByID, create, update, remove };
+
+
+
+// CẤU HÌNH NGƯỜI GỬI EMAIL (SMTP)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'dotiendat01092005@gmail.com', 
+        pass: 'gyku wkzp xhep xzgt'  
+    }
+});
+
+const forgotPassword = async (req, res) => {
+    try {
+        const { email, sdt } = req.body; // Giao diện yêu cầu nhập SDT và Email
+
+        // check 
+        const khachHang = await prisma.kHACHHANG.findFirst({
+            where: { SDT: sdt, EMAIL: email } 
+        });
+
+        if (!khachHang) {
+            return res.status(404).json({ success: false, message: "Thông tin không chính xác hoặc không tồn tại!" });
+        }
+
+        //Tạo mật khẩu mới 6 số ngẫu nhiên 
+        const newPassword = Math.floor(100000 + Math.random() * 900000).toString();
+
+        //lưu lại pass vào db
+        await prisma.tAIKHOAN.update({
+            where: { MATK: sdt },
+            data: { PASS: newPassword }
+        });
+
+        //Gửi Email
+        const mailOptions = {
+            from: '"Hệ thống 30Shine Clone" <dotiendat01092005@gmail.com>',
+            to: email,//mail của khách hàng
+            subject: 'Khôi phục mật khẩu tài khoản',
+            html: `
+                <h3>Xin chào ${khachHang.HOTEN},</h3>
+                <p>Hệ thống đã nhận được yêu cầu cấp lại mật khẩu của bạn.</p>
+                <p>Mật khẩu mới của bạn là: <strong style="font-size: 20px; color: red;">${newPassword}</strong></p>
+                <p>Vui lòng đăng nhập bằng mật khẩu này và tiến hành đổi mật khẩu mới để bảo mật tài khoản.</p>
+                <br/>
+                <p>Trân trọng,</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({ success: true, message: "Mật khẩu mới đã được gửi vào Email của bạn!" });
+
+    } catch (error) {
+        console.error("Lỗi gửi email:", error);
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ, vui lòng thử lại sau!" });
+    }
+};
+
+
+
+module.exports = { getAll, getByID, create, update, remove, forgotPassword };

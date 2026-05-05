@@ -33,7 +33,8 @@ const createKhachHang = async (model) => {
             MAKH: model.MAKH || model.makh,
             HOTEN: model.HOTEN || model.hoten,
             SDT: model.SDT || model.sdt,
-            MATK: model.MATK || model.matk || null
+            MATK: model.MATK || model.matk || null,
+            EMAIL: model.EMAIL || model.email || null
         }
     });
 };

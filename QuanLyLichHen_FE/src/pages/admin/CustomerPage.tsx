@@ -29,7 +29,8 @@ const CustomerPage: React.FC = () => {
         cusID: '',
         cusName: '',
         cusPhone: '',
-        cusAcc: ''
+        cusAcc: '',
+        cusEmail: '',
     });
     const filteredCustomerList = customerList.filter(customer =>
         customer.MAKH?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -62,7 +63,8 @@ const CustomerPage: React.FC = () => {
             cusID: '',
             cusName: '',
             cusPhone: '',
-            cusAcc: ''
+            cusAcc: '',
+            cusEmail: '',
         });
         setFormErrors({}); // Xóa lỗi cũ
         setModalType('add');
@@ -74,7 +76,8 @@ const CustomerPage: React.FC = () => {
             cusID: row.MAKH || '',
             cusName: row.HOTEN || '',
             cusPhone: row.SDT || '',
-            cusAcc: row.MATK || ''
+            cusAcc: row.MATK || '',
+            cusEmail: row.EMAIL || '',
         });
         setFormErrors({}); // Xóa lỗi cũ
         setModalType('edit');
@@ -138,47 +141,44 @@ const CustomerPage: React.FC = () => {
             MAKH: formData.cusPhone,
             HOTEN: formData.cusName,
             SDT: formData.cusPhone,
-            MATK: formData.cusPhone
+            MATK: formData.cusPhone,
+            EMAIL: formData.cusEmail,
         };
 
         const submitDataTK = {
             MATK: formData.cusPhone,
             PASS: formData.cusPhone,
             PHANQUYEN: 0,
-            TRANGTHAI: "Hoạt động"
+            TRANGTHAI: "Hoạt động",
+        };
+
+        //GỘP (Map đúng tên biến mà Backend cần)
+        const combinedData = {
+            MATK: formData.cusPhone,
+            PASS: formData.cusPhone,
+            PHANQUYEN: 0,
+            TRANGTHAI: "Hoạt động",
+            HOTEN: formData.cusName,
+            SDT: formData.cusPhone,
+            EMAIL: formData.cusEmail
         };
         try {
             if (modalType === 'add') {
-                let isTkExist = false;
-                try {
-                    const checkExistTK = await taikhoanApi.getById(formData.cusPhone);
-                    if (checkExistTK && checkExistTK.data.success) isTkExist = true;
-                } catch (err: any) {
-                    if (err.response && err.response.status === 404) isTkExist = false;
-                    else throw err;
-                }
-
-                if (isTkExist) {
-                    toast.error("Tài khoản (SĐT) này đã tồn tại!");
-                    return;
-                }
-                const taikhoanResult = await taikhoanApi.create(submitDataTK);
-                if (taikhoanResult.data.success) {
-                    await customerApi.create(submitData);
-                    toast.success("Thêm khách hàng thành công!");
-                }
-
-
+                await customerApi.create(combinedData);
+                toast.success("Thêm tài khoản và khách hàng thành công!");
             } else {
                 await customerApi.update(formData.cusPhone, submitData);
                 toast.success("Cập nhật khách hàng thành công!");
             }
             setModalType('none'); // Đóng form
             fetchData(); // Tải lại dữ liệu
-        } catch (error) {
-            console.error("Lỗi:", error);
-            toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
-
+        } catch (error: any) {
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
     // xoá
@@ -187,16 +187,16 @@ const CustomerPage: React.FC = () => {
         try {
             //Xóa Khách Hàng trước
             await customerApi.delete(idToDelete);
-            
+
             //Xóa Tài Khoản sau
             await taikhoanApi.delete(sdtToDelete);
 
             toast.success("Xóa khách hàng thành công!");
             setIsDeleteModalOpen(false);
             fetchData(); // Load lại bảng
-        } catch (error) {
+        } catch (error: any) {
             console.error("Lỗi xóa:", error);
-            toast.error("Xóa thất bại! Vui lòng kiểm tra lại dữ liệu.");
+            toast.error(error.response?.data?.message || "Xóa thất bại! Vui lòng kiểm tra lại dữ liệu.");
         }
     };
     //Định nghĩa cột cho DataTable theo api trả về
@@ -204,6 +204,7 @@ const CustomerPage: React.FC = () => {
         { tieude: "ID", cotnhandulieu: "MAKH" },
         { tieude: "Họ tên", cotnhandulieu: "HOTEN", render: (row) => row.HOTEN },
         { tieude: "SĐT", cotnhandulieu: "SDT" },
+        { tieude: "Email", cotnhandulieu: "EMAIL" },
         { tieude: "Tài khoản", cotnhandulieu: "MATK" },
         {
             tieude: "Hành động", cotnhandulieu: "MAKH", render: (row) => (
@@ -264,6 +265,18 @@ const CustomerPage: React.FC = () => {
                     }}
                 />
                 {formErrors.cusPhone && <span style={{ color: 'red', fontSize: '0.85rem' }}>{formErrors.cusPhone}</span>}
+            </div>
+            <div className="form-group">
+                <label htmlFor="cusEmail">Email:</label>
+                <input
+                    type="email"
+                    id="cusEmail"
+                    placeholder="Nhập email..."
+                    value={formData.cusEmail}
+                    onChange={handleChange}
+                    disabled={modalType === 'edit'}
+                />
+                {formErrors.cusEmail && <span style={{ color: 'red', fontSize: '0.85rem' }}>{formErrors.cusEmail}</span>}
             </div>
 
 

@@ -23,7 +23,8 @@ const ProfilePage = () => {
 		cusID: '',
 		cusName: '',
 		cusPhone: '',
-		cusAcc: ''
+		cusAcc: '',
+		cusEmail: ''
 	});
 	// Lấy data từ API
 	const fetchData = async () => {
@@ -36,10 +37,12 @@ const ProfilePage = () => {
 						: resKH.data.data;
 
 					const tenGoc = customerData.HOTEN;
+					const email = customerData.EMAIL;
 					setName(tenGoc);
 					setFormDataKH((prev) => ({
 						...prev,
-						cusName: tenGoc
+						cusName: tenGoc,
+						cusEmail: email
 					}));
 					setFormData((prev) => ({
                         ...prev,
@@ -92,7 +95,8 @@ const ProfilePage = () => {
 				MAKH: formDataKH.cusPhone.trim(),
 				HOTEN: formDataKH.cusName.trim(),
 				SDT: formDataKH.cusPhone.trim(),
-				MATK: formDataKH.cusPhone.trim()
+				MATK: formDataKH.cusPhone.trim(),
+				EMAIL: formDataKH.cusEmail.trim(),
 			};
 
 			await CustomerApi.update(user, submitDataKH);
@@ -147,6 +151,15 @@ const ProfilePage = () => {
 								maxLength={10}
 								readOnly
 								value={user.trim() || ""}
+							/>
+
+							<label htmlFor="cusEmail">Email</label>
+							<input
+								id="cusEmail"
+								type="text"
+								placeholder="Email"
+								readOnly
+								value={formDataKH.cusEmail || ""}
 							/>
 
 							<label htmlFor="accPassword">Mật khẩu mới</label>

@@ -2,20 +2,38 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "../../assets/css/login.css";
 import { toast } from "react-toastify";
+import TaiKhoanApi from "../../api/taikhoanApi";
 const Forgot = () => {
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);//tránh đỏ màn hình khi submit
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // xử lý quên mật khẩu ở đây
-    toast.info("Mật khẩu đã được gửi đến số điện thoại: " + phone);
+
+    if (!phone || !email) {
+      toast.warn("Vui lòng nhập đầy đủ Số điện thoại và Email!");
+      return;
+    }
+
+    try {
+      // Bật trạng thái loading khi bắt đầu gọi API
+      setIsLoading(true);
+      const response = await TaiKhoanApi.forgotPassword({sdt: phone, email: email});
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+        //toast.info("Mật khẩu đã được gửi đến email của bạn.");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Có lỗi xảy ra!");
+    }finally {
+      // Tắt trạng thái loading dù thành công hay thất bại
+      setIsLoading(false); 
+    }
   };
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // chỉ cho nhập số
-    const value = e.target.value.replace(/[^0-9]/g, "");
-    setPhone(value);
-  };
 
   return (
     <div className="login-page">
@@ -31,22 +49,36 @@ const Forgot = () => {
           <h1>QUÊN MẬT KHẨU</h1>
 
           <form onSubmit={handleSubmit}>
-            <label htmlFor="emailOrPhone">
+            <label htmlFor="Phone">
               Số điện thoại <span>*</span>
             </label>
 
             <input
-              id="emailOrPhone"
+              id="Phone"
               type="text"
               maxLength={10}
               placeholder="Nhập số điện thoại của bạn"
               value={phone}
-              onChange={handleInput}
+              onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
               required
             />
 
-            <button type="submit" id="btn-login">
-              GỬI YÊU CẦU
+            <label htmlFor="Email">
+              Email <span>*</span>
+            </label>
+
+            <input
+              id="Email"
+              type="email"
+              placeholder="Nhập email của bạn"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+
+            {/* tránh spam click*/}
+            <button type="submit" id="btn-login" disabled={isLoading}>
+              {isLoading ? "ĐANG GỬI EMAIL..." : "GỬI YÊU CẦU"}
             </button>
 
             <div className="extra-links">

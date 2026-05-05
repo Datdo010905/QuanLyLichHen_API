@@ -11,4 +11,6 @@ router.delete('/delete-taikhoan/:id', taiKhoanController.remove);
 
 router.post('/insert-taikhoan', taiKhoanController.create);
 
+router.post('/forgot-password', taiKhoanController.forgotPassword);
+
 module.exports = router;
