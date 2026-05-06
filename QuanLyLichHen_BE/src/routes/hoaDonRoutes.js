@@ -15,4 +15,6 @@ router.get('/get-byId-CTHoaDon/:id', hoaDonController.getCTByID);
 router.post('/insert-CTHoaDon', hoaDonController.createCT);
 router.delete('/delete-CTHoaDon/:id', hoaDonController.removeCT);
 
+router.post('/insert-HoaDonvaChiTiet', hoaDonController.createFull);
+router.delete('/delete-HoaDonvaChiTiet/:id', hoaDonController.deleteFull);
 module.exports = router;

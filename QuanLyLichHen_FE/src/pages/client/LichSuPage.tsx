@@ -55,8 +55,6 @@ const LichSuPage = () => {
 				;
 				setBookingList(resBooking.data.data);
 
-				const resBookingDetails = await bookingApi.getAllCT();
-
 				const resDichVu = await dichVuApi.getAll();
 				const resNhanVien = await staffApi.getAll();
 				if (resDichVu.data.success) {

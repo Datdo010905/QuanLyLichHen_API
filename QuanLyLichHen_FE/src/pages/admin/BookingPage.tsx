@@ -277,24 +277,11 @@ const BookingPage = () => {
 
             if (modalType === 'add') {
 
-                // Check 404 cho hàm kiểm tra tồn tại
-                let isExist = false;
-                try {
-                    const checkExist = await bookingApi.getById(formData.bookingID);
-                    if (checkExist && checkExist.data.success)
-                        isExist = true;
-                } catch (err: any) {
-                    if (err.response && err.response.status === 404)
-                        isExist = false;
-                    else throw err;
-                }
-
-                if (isExist) {
-                    toast.error("Mã lịch hẹn đã tồn tại!");
-                    return;
-                }
-                await bookingApi.create(submitData);
-                await bookingApi.createCT(submitDataCT);
+                const combinedData = {
+                    booking: submitData,
+                    details: submitDataCT
+                };
+                await bookingApi.createFull(combinedData);
                 toast.success("Thêm lịch hẹn thành công!");
 
             }
@@ -338,9 +325,14 @@ const BookingPage = () => {
             }
             setModalType('none'); // Đóng form
             fetchData(); // Tải lại dữ liệu
-        } catch (error) {
+        } catch (error: any) {
             console.error("Lỗi:", error);
-            toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
 
         }
     };
@@ -351,34 +343,34 @@ const BookingPage = () => {
             toast.error("Bạn không có quyền xóa lịch hẹn!");
             return;
         }
-        
+
         try {
             //chỉ xoá những lịch đã huỷ
             const lichHen = bookingList.find(b => b.MALICH?.trim() === idToDelete?.trim());
-            
+
             if (lichHen?.TRANGTHAI?.trim() !== "Đã huỷ") {
                 toast.error("Chỉ có thể xóa những lịch hẹn đã huỷ!");
                 return;
             }
-            try {
-                await bookingApi.deleteCT(idToDelete.trim());
-            }
-            catch (error) {
-                console.error("Lỗi xóa chi tiết:", error);
+            const response = await bookingApi.deleteFull(idToDelete);
+
+            if (response.data.success) {
+                toast.success(response.data.message || "Xoá lịch hẹn thành công!");
+                setIsDeleteModalOpen(false);
+                fetchData();
             }
 
-            await bookingApi.delete(idToDelete.trim());
-
-            toast.success("Xóa lịch hẹn thành công!");
-            setIsDeleteModalOpen(false);
-            fetchData(); // Load lại bảng
             if (idToDelete === IDtoView) {
                 setIDtoView(null);
                 setViewDetailsList([]);
             }
-        } catch (error) {
-            console.error("Lỗi xóa:", error);
-            toast.error("Xóa thất bại!");
+        } catch (error: any) {
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
     const handleViewClick = async (row: Booking) => {

@@ -10,8 +10,6 @@ export const staffSchema = z.object({
     staffBranch: z.string().min(1, { message: "Chi nhánh không được để trống" }),
     staffBirthDate: z.string().min(1, { message: "Ngày sinh không được để trống" }),
 
-
-    staffAcc: z.string().min(1, { message: "Tài khoản không được để trống" }),
 }).refine((date) => {
     const birthDate = new Date(date.staffBirthDate);
     const today = new Date();

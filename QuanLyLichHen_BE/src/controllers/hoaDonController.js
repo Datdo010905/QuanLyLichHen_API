@@ -48,8 +48,8 @@ const getAllTheoNgay = async (req, res) => {
 
         const data = await hoaDonService.getHoaDonTheoNgay(ngaybd, ngaykt);
         return res.status(200).json({ success: true, data: data });
-    } catch (error) { 
-        return res.status(500).json({ success: false, message: error.message }); 
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -82,4 +82,57 @@ const removeCT = async (req, res) => {
     } catch (error) { return res.status(500).json({ success: false, message: error.message }); }
 };
 
-module.exports = { getAll, getByID, create, update, remove, getAllTheoNgay, getAllCT, getCTByID, createCT, removeCT };
+
+const createFull = async (req, res) => {
+    try {
+        const { invoice, details } = req.body;
+
+        const exist = await hoaDonService.getHoaDonByID(invoice.MAHD || invoice.mahd);
+        if (exist) {
+            return res.status(400).json({ success: false, message: "Mã hoá đơn đã tồn tại!" });
+        }
+
+        const newData = await hoaDonService.createHoaDonWithDetails(invoice, details);
+        
+        return res.status(201).json({ success: true, message: "Thanh toán và lập hóa đơn thành công!", data: newData });
+    } catch (error) { 
+        return res.status(500).json({ success: false, message: error.message }); 
+    }
+};
+
+const deleteFull = async (req, res) => {
+    try {
+        // Lấy id từ URL
+        const id = req.params.id; 
+
+        await hoaDonService.deleteHoaDonWithDetails(id);
+
+        return res.status(200).json({ 
+            success: true, 
+            message: "Đã xóa thành công hóa đơn và chi tiết!" 
+        });
+
+    } catch (error) {
+        console.error("Lỗi xóa Hóa đơn:", error);
+        
+        if (error.code === 'P2025') {
+            return res.status(404).json({ success: false, message: "Không tìm thấy hóa đơn này!" });
+        }
+        
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ, thao tác xóa bị hủy!" });
+    }
+};
+module.exports = {
+    getAll,
+    getByID,
+    create,
+    update,
+    remove,
+    getAllTheoNgay,
+    getAllCT,
+    getCTByID,
+    createCT,
+    removeCT,
+    createFull,
+    deleteFull
+};

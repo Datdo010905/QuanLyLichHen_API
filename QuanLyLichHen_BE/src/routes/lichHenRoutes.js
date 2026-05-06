@@ -17,4 +17,7 @@ router.post('/insert-CTlichhen', lichHenController.createCT);
 router.put('/update-CTlichhen/:id', lichHenController.updateCT);
 router.delete('/delete-CTlichhen/:id', lichHenController.removeCT);
 
+
+router.post('/create-full', lichHenController.createBookingTransaction);
+router.delete('/delete-full/:id', lichHenController.deleteFullBookingTransaction);
 module.exports = router;

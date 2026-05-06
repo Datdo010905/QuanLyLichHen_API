@@ -50,14 +50,14 @@ const Sidebar = () => {
 
     const adminMenus = [
         { name: "Tổng quan", url: "/admin/dashboard", icon: "fas fa-tachometer-alt", allowedRoles: [1, 2, 3, 4, 5] },
-        { name: "Tài khoản", url: "/admin/accounts", icon: "fas fa-user-shield", allowedRoles: [1] },
-        { name: "Khuyến mại", url: "/admin/promotions", icon: "fas fa-tags", allowedRoles: [1] },
-        { name: "Dịch vụ", url: "/admin/services", icon: "fas fa-concierge-bell", allowedRoles: [1, 2] },
-        { name: "Khách hàng", url: "/admin/customers", icon: "fas fa-users", allowedRoles: [1, 2] },
-        { name: "Nhân viên", url: "/admin/staff", icon: "fas fa-user-tie", allowedRoles: [1, 2] },
         { name: "Báo cáo", url: "/admin/reports", icon: "fas fa-chart-line", allowedRoles: [1, 2] },
         { name: "Lịch hẹn", url: "/admin/bookings", icon: "fas fa-calendar-check", allowedRoles: [1, 2, 3, 5] },
         { name: "Hoá đơn", url: "/admin/invoices", icon: "fas fa-file-invoice-dollar", allowedRoles: [1, 2, 4] },
+        { name: "Dịch vụ", url: "/admin/services", icon: "fas fa-concierge-bell", allowedRoles: [1, 2] },
+        { name: "Khuyến mại", url: "/admin/promotions", icon: "fas fa-tags", allowedRoles: [1] },
+        { name: "Tài khoản", url: "/admin/accounts", icon: "fas fa-user-shield", allowedRoles: [1] },
+        { name: "Khách hàng", url: "/admin/customers", icon: "fas fa-users", allowedRoles: [1, 2] },
+        { name: "Nhân viên", url: "/admin/staff", icon: "fas fa-user-tie", allowedRoles: [1, 2] },
     ];
 
     return (

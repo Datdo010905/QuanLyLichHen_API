@@ -64,6 +64,14 @@ const BookingApi = {
     },
     deleteCT(id: string) {
         return axiosClient.delete(`/api/lichhen/delete-CTlichhen/${id}`);
-    }
+    },
+
+    createFull: (data: { booking: Booking, details: BookingDetails }) => {
+        return axiosClient.post('/api/lichhen/create-full', data); 
+    },
+
+    deleteFull: (id: string) => {
+        return axiosClient.delete(`/api/lichhen/delete-full/${id}`);
+    },
 };
 export default BookingApi;

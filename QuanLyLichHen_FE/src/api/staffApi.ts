@@ -39,7 +39,16 @@ const NhanVienApi = {
     },
     delete(id: string) {
         return axiosClient.delete(`/api/nhanvien/delete-nhanvien/${id}`);
-    }
+    },
+
+
+    //any vì có cả data tài khoản
+    createFull(data: any) {
+        return axiosClient.post('/api/nhanvien/insert-full', data);
+    },
+    deleteFull(id: string) {
+        return axiosClient.delete(`/api/nhanvien/delete-full/${id}`);
+    },
 };
 
 

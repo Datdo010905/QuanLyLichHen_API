@@ -46,7 +46,7 @@ const createCustomerWithAccount = async (req, res) => {
 
         //TRANSACTION: dùng cả 2 service trong 1 transaction để đảm bảo tính nhất quán dữ liệu
         const result = await prisma.$transaction(async (tx) => {
-            
+
             //Tạo Tài khoản
             const newTaiKhoan = await tx.tAIKHOAN.create({
                 data: {
@@ -73,8 +73,8 @@ const createCustomerWithAccount = async (req, res) => {
         });
 
         //lưu thành công
-        return res.status(200).json({ 
-            success: true, 
+        return res.status(200).json({
+            success: true,
             message: "Thêm mới tài khoản và khách hàng thành công!",
             data: result
         });
@@ -115,4 +115,108 @@ const remove = async (req, res) => {
     }
 };
 
-module.exports = { getAll, getByID, createCustomerWithAccount, update, remove };
+const deleteFullCustomerTransaction = async (req, res) => {
+    try {
+        // Lấy id từ URL
+        const id = req.params.id;
+
+
+        await prisma.$transaction(async (tx) => {
+
+            //Xóa khách
+            await tx.kHACHHANG.delete({
+                where: { MAKH: id }
+            });
+
+            //Xóa tài khoản
+            await tx.tAIKHOAN.delete({
+                where: { MATK: id }
+            });
+
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Đã xóa thành công khách hàng và tài khoản!"
+        });
+
+    } catch (error) {
+        console.error("Lỗi Transaction Xóa Khách hàng:", error);
+
+        // lỗi không tìm thấy bản ghi
+        if (error.code === 'P2025') {
+            return res.status(404).json({ success: false, message: "Không tìm thấy khách hàng này trong hệ thống!" });
+        }
+
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ, không thể xóa khách hàng lúc này!" });
+    }
+};
+
+const updateProfileFull = async (req, res) => {
+    try {
+        // Lấy ID (SĐT) từ URL
+        const id = req.params.id; 
+        
+        // Frontend sẽ gửi lên 2 cục data: Thông tin khách hàng và Thông tin tài khoản (nếu có đổi pass)
+        const { customerData, accountData } = req.body;
+
+        // Cấm chạm tới Khóa chính để tránh lỗi Khóa ngoại
+        if (customerData) {
+            delete customerData.MAKH; 
+            delete customerData.SDT; 
+        }
+        
+        if (accountData) {
+            delete accountData.MATK; 
+        }
+        const result = await prisma.$transaction(async (tx) => {
+            
+            //Cập nhật bảng KHACHHANG
+            const updatedCustomer = await tx.kHACHHANG.update({
+                where: { MAKH: id },
+                data: {
+                    HOTEN: customerData.HOTEN,
+                    EMAIL: customerData.EMAIL
+                }
+            });
+
+            //Cập nhật bảng TAIKHOAN (Chỉ cập nhật nếu Frontend có gửi accountData lên)
+            let updatedAccount = null;
+            if (accountData && accountData.PASS && accountData.PASS.trim() !== '') {
+                updatedAccount = await tx.tAIKHOAN.update({
+                    where: { MATK: id }, 
+                    data: {
+                        PASS: accountData.PASS
+                    }
+                });
+            }
+
+            return { updatedCustomer, updatedAccount };
+        });
+
+        return res.status(200).json({ 
+            success: true, 
+            message: "Cập nhật hồ sơ thành công!", 
+            data: result 
+        });
+
+    } catch (error) {
+        console.error("Lỗi Transaction Update Profile:", error);
+        
+        if (error.code === 'P2025') {
+            return res.status(404).json({ success: false, message: "Không tìm thấy dữ liệu tài khoản!" });
+        }
+        
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ, thao tác đã tự động hoàn tác!" });
+    }
+};
+
+module.exports = {
+    getAll,
+    getByID,
+    createCustomerWithAccount,
+    update,
+    remove,
+    deleteFullCustomerTransaction,
+    updateProfileFull
+};

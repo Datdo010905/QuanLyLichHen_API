@@ -25,5 +25,13 @@ const CustomerApi = {
     delete(id: string) {
         return axiosClient.delete(`/api/khachhang/delete-khachhang/${id}`);
     },
+
+    deleteFull(id: string) {
+        return axiosClient.delete(`/api/khachhang/delete-full/${id}`);
+    },
+    //? cho phép null
+    updateProfileFull: (id: string, data: { customerData: any, accountData?: any }) => {
+        return axiosClient.put(`/api/khachhang/update-profile/${id}`, data);
+    },
 };
 export default CustomerApi;

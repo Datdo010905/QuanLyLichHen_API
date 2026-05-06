@@ -45,11 +45,11 @@ const ProfilePage = () => {
 						cusEmail: email
 					}));
 					setFormData((prev) => ({
-                        ...prev,
+						...prev,
 						accUsername: user.trim(),
-                        accRole: '0', 
-                        accStatus: 'Hoạt động' 
-                    }));
+						accRole: '0',
+						accStatus: 'Hoạt động'
+					}));
 
 				} else {
 					toast.error("Không tìm thấy thông tin khách hàng.");
@@ -71,12 +71,24 @@ const ProfilePage = () => {
 	}
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
 		const { id, value } = e.target;
-		// Tùy theo ID mà cập nhật đúng State tương ứng
-		if (id === "accPassword") {
-			setFormData((prev) => ({ ...prev, [id]: value }));
-		} else if (id === "cusName") {
-			setFormDataKH((prev) => ({ ...prev, [id]: value }));
-		}
+		setFormData((prev) => ({ ...prev, [id]: value }));
+		setFormDataKH((prev) => ({ ...prev, [id]: value }));
+	};
+
+	//đổi tên
+	const submitDataKH = {
+		HOTEN: formDataKH.cusName.trim(),
+		SDT: user.trim(),
+		MATK: user.trim(),
+		EMAIL: formDataKH.cusEmail.trim(),
+	};
+
+	//đổi mật khẩu
+	const submitDataTK = {
+		MATK: user.trim(),
+		PASS: formData.accPassword.trim(),
+		PHANQUYEN: Number(formData.accRole),
+		TRANGTHAI: formData.accStatus.trim()
 	};
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -86,40 +98,28 @@ const ProfilePage = () => {
 			toast.warn("Họ tên không được để trống!");
 			return;
 		}
-
 		try {
-
-			
-			//đổi tên
-			const submitDataKH = {
-				MAKH: formDataKH.cusPhone.trim(),
-				HOTEN: formDataKH.cusName.trim(),
-				SDT: formDataKH.cusPhone.trim(),
-				MATK: formDataKH.cusPhone.trim(),
-				EMAIL: formDataKH.cusEmail.trim(),
+			const payload = {
+				customerData: submitDataKH,
+				accountData: submitDataTK
 			};
+			const response = await CustomerApi.updateProfileFull(user.trim(), payload);
 
-			await CustomerApi.update(user, submitDataKH);
-
-			//check có thì đổi mật khẩu
-			const newPass = formData.accPassword.trim();
-			if (newPass) {
-				//đổi mật khẩu
-				const submitData = {
-					MATK: formData.accUsername.trim(),
-					PASS: formData.accPassword.trim(),
-					PHANQUYEN: Number(formData.accRole),
-					TRANGTHAI: formData.accStatus.trim()
-				};
-				await TaiKhoanApi.update(user, submitData);
+			if (response.data.success) {
+				toast.success(response.data.message || "Thay đổi thông tin cá nhân thành công!");
+				fetchData();
+				// Cập nhật xong thì xóa rỗng ô mật khẩu
+				setFormData(prev => ({ ...prev, accPassword: '' }));
 			}
 
-			toast.success("Cập nhật thông tin thành công!");
-			// Cập nhật xong thì xóa rỗng ô mật khẩu
-            setFormData(prev => ({ ...prev, accPassword: '' }));
-		} catch (error) {
-			console.error("Lỗi cập nhật:", error);
-			toast.error("Cập nhật thất bại, vui lòng thử lại!");
+		} catch (error: any) {
+			console.error("Lỗi cập nhật Profile:", error);
+			// HỨNG LỖI TỪ BACKEND
+			if (error.response && error.response.data && error.response.data.message) {
+				toast.error(error.response.data.message);
+			} else {
+				toast.error("Cập nhật thất bại, vui lòng kiểm tra lại!");
+			}
 		}
 	}
 

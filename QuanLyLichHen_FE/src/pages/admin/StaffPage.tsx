@@ -178,41 +178,29 @@ const StaffPage: React.FC = () => {
         // submitDataTK.append('TrangThai', "Hoạt động");
 
         const submitDataTK: TaiKhoan = {
-            MATK: formData.staffAcc,
-            PASS: formData.staffAcc,
+            MATK: formData.staffID,
+            PASS: formData.staffID,
+            PHANQUYEN: Number(roleMap[formData.staffPosition] || "3"),
+            TRANGTHAI: "Hoạt động"
+        };
+
+        //GỘP (Map đúng tên biến mà Backend cần)
+        const combinedData = {
+            MANV: formData.staffID,
+            HOTEN: formData.staffName,
+            CHUCVU: formData.staffPosition,
+            SDT: formData.staffPhone,
+            DIACHI: formData.staffAddress,
+            MACHINHANH: formData.staffBranch,
+            NGAYSINH: formData.staffBirthDate,
+            PASS: formData.staffPhone,
             PHANQUYEN: Number(roleMap[formData.staffPosition] || "3"),
             TRANGTHAI: "Hoạt động"
         };
         try {
             if (modalType === 'add') {
-                let isTkExist = false;
-                try {
-                    const checkExistTK = await taikhoanApi.getById(formData.staffAcc);
-                    if (checkExistTK && checkExistTK.data.success) 
-                        isTkExist = true;
-                } catch (err: any) {
-                    if (err.response && err.response.status === 404) 
-                        isTkExist = false;
-                    else 
-                        throw err;
-                }
-                const checkPhone = await staffApi.getAll();
-
-                const phoneExists = checkPhone.data.data.some((nv: any) => nv.SDT === formData.staffPhone);
-                if (isTkExist) {
-                    toast.error("Tài khoản này đã tồn tại!");
-                    return;
-                }
-                if (phoneExists) {
-                    toast.error("Số điện thoại đã tồn tại!");
-                    return;
-                }
-
-                const taikhoanResult = await taikhoanApi.create(submitDataTK);
-                if (taikhoanResult.data.success) {
-                    await staffApi.create(submitData);
-                    toast.success("Thêm nhân viên thành công!");
-                }
+                const res = await staffApi.createFull(combinedData);
+                toast.success(res.data.message || "Thêm nhân viên thành công!");
             }
             else {
                 if (formData.staffID === 'NV001') {
@@ -225,10 +213,13 @@ const StaffPage: React.FC = () => {
             }
             setModalType('none'); // Đóng form
             fetchData(); // Tải lại dữ liệu
-        } catch (error) {
-            console.error("Lỗi:", error);
-            toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
-
+        } catch (error: any) {
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
     // xoá
@@ -240,15 +231,18 @@ const StaffPage: React.FC = () => {
             return;
         }
         try {
-            await staffApi.delete(idToDelete);
-            await taikhoanApi.delete(tkToDelete);
+            const response = await staffApi.deleteFull(idToDelete);
 
-            toast.success("Xóa nhân viên thành công!");
+            toast.success(response.data.message || "Xóa nhân viên thành công!");
             setIsDeleteModalOpen(false);
             fetchData();
-        } catch (error) {
-            console.error("Lỗi xóa:", error);
-            toast.error("Xóa thất bại!");
+        } catch (error: any) {
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
 
@@ -401,7 +395,7 @@ const StaffPage: React.FC = () => {
             </div>
 
 
-            <div className="form-group">
+            <div hidden = {modalType === 'add'} className="form-group">
                 <label htmlFor="staffAcc">Tài khoản:</label>
                 <input
                     type="text"

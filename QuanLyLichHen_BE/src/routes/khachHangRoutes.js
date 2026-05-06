@@ -8,4 +8,7 @@ router.post('/insert-khachhangVoiTaiKhoan', khachHangController.createCustomerWi
 router.put('/update-khachhang/:id', khachHangController.update);
 router.delete('/delete-khachhang/:id', khachHangController.remove);
 
+router.delete('/delete-full/:id', khachHangController.deleteFullCustomerTransaction);
+
+router.put('/update-profile/:id', khachHangController.updateProfileFull);
 module.exports = router;

@@ -60,6 +60,14 @@ const HoaDonApi = {
 
     deleteCT(id: string) {
         return axiosClient.delete(`/api/hoadon/delete-CTHoaDon/${id}`);
-    }
+    },
+
+
+    checkout: (data: { invoice: HoaDon, details: HoaDonDetails[] }) => {
+        return axiosClient.post('/api/hoadon/insert-HoaDonvaChiTiet', data);
+    },
+    deleteFull: (id: string) => {
+        return axiosClient.delete(`/api/hoadon/delete-HoaDonvaChiTiet/${id}`);
+    },
 };
 export default HoaDonApi;

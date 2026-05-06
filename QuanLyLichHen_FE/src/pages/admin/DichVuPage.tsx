@@ -179,26 +179,7 @@ const DichVuPage: React.FC = () => {
         }
         try {
             if (modalType === 'add') {
-                let isExist = false;
-                try {
-                    const ex = await dichVuApi.getById(formData.serviceID);
-                    //(HTTP 200) Mã đã tồn tại
-                    if (ex && ex.data.success) {
-                        isExist = true;
-                    }
-                } catch (err: any) {
-                    // 404 do BE trả khi ko có mã -> thêm
-                    if (err.response && err.response.status === 404) {
-                        isExist = false;
-                    } else {
-                        throw err; 
-                    }
-                }
 
-                if (isExist) {
-                    toast.error("Mã dịch vụ đã tồn tại. Vui lòng nhập mã khác!");
-                    return;
-                }
                 await dichVuApi.create(submitData);
                 toast.success("Thêm dịch vụ thành công!");
             } else {
@@ -207,9 +188,13 @@ const DichVuPage: React.FC = () => {
             }
             setModalType('none'); // Đóng form
             fetchData(); // Tải lại dữ liệu
-        } catch (error) {
-            console.error("Lỗi:", error);
-            toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+        } catch (error: any) {
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
 
@@ -221,9 +206,13 @@ const DichVuPage: React.FC = () => {
             toast.success("Xóa dịch vụ thành công!");
             setIsDeleteModalOpen(false);
             fetchData(); // Load lại bảng
-        } catch (error) {
-            console.error("Lỗi xóa:", error);
-            toast.error("Xóa thất bại!");
+        } catch (error: any) {
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
     const status: Record<string, React.CSSProperties> = {

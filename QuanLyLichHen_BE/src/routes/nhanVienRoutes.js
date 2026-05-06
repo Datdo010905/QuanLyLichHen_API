@@ -8,4 +8,6 @@ router.post('/insert-nhanvien', nhanVienController.create);
 router.put('/update-nhanvien/:id', nhanVienController.update);
 router.delete('/delete-nhanvien/:id', nhanVienController.remove);
 
+router.post('/insert-full', nhanVienController.createWithAccount);
+router.delete('/delete-full/:id', nhanVienController.deleteFullStaffTransaction);
 module.exports = router;

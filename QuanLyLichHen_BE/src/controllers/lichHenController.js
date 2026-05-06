@@ -1,5 +1,6 @@
 const lichHenService = require('../services/lichHenService');
-
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 //API (LỊCH HẸN)
 const getAll = async (req, res) => {
@@ -120,8 +121,8 @@ const getAllTheoNgay = async (req, res) => {
 
         const data = await lichHenService.getLichHenTheoNgay(ngaybd, ngaykt);
         return res.status(200).json({ success: true, data: data });
-    } catch (error) { 
-        return res.status(500).json({ success: false, message: error.message }); 
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -181,8 +182,8 @@ const updateCT = async (req, res) => {
 
         await lichHenService.updateCT(id, ghichu);
         return res.status(200).json({ success: true, message: "Cập nhật ghi chú thành công!" });
-    } catch (error) { 
-        return res.status(500).json({ success: false, message: error.message }); 
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -202,4 +203,103 @@ const removeCT = async (req, res) => {
     }
 };
 
-module.exports = { getAll, getByID, getByIDKH, create, updateStatus, remove, getAllTheoNgay, getAllCT, getCTByID, createCT, updateCT, removeCT };
+
+const createBookingTransaction = async (req, res) => {
+    try {
+        const { booking, details } = req.body;
+
+        //chuyển về iso
+        booking.NGAYHEN = new Date(booking.NGAYHEN).toISOString();
+
+        booking.GIOHEN = new Date(`1970-01-01T${booking.GIOHEN}:00.000Z`);
+
+        const result = await prisma.$transaction(async (tx) => {
+
+            //Tạo Lịch Hẹn
+            const newBooking = await tx.lICHHEN.create({
+                data: booking
+            });
+
+            //Lấy MALICH vừa tạo
+            details.MALICH = newBooking.MALICH;
+
+            //Tạo Chi Tiết Lịch Hẹn
+            const newBookingDetail = await tx.cHITIETLICHHEN.create({
+                data: details
+            });
+
+            return { newBooking, newBookingDetail };
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Thêm lịch hẹn thành công!",
+            data: result
+        });
+
+    } catch (error) {
+        console.error("Lỗi Transaction Booking:", error);
+
+        if (error.code === 'P2002') {
+            return res.status(400).json({ success: false, message: "Mã lịch hẹn đã tồn tại!" });
+        }
+
+        return res.status(500).json({ success: false, message: "Thao tác thất bại, hệ thống đã tự động hoàn tác!" });
+    }
+};
+
+const deleteFullBookingTransaction = async (req, res) => {
+    try {
+        // Lấy id từ URL (/api/lichhen/delete-full/LH001)
+        const id = req.params.id;
+
+        
+        await prisma.$transaction(async (tx) => {
+
+            //Xóa tất cả chi tiết
+            //Dùng deleteMany vì 1 lịch hẹn có thể có nhiều chi tiết
+            await tx.cHITIETLICHHEN.deleteMany({
+                where: { MALICH: id }
+            });
+
+            //Xóa lịch hẹn gốc
+            await tx.lICHHEN.delete({
+                where: { MALICH: id }
+            });
+
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Đã xóa thành công lịch hẹn và chi tiết!"
+        });
+
+    } catch (error) {
+        console.error("Lỗi Transaction Xóa Booking:", error);
+
+        // lỗi không tìm thấy bản ghi
+        if (error.code === 'P2025') {
+            return res.status(404).json({ success: false, message: "Không tìm thấy lịch hẹn này trong hệ thống!" });
+        }
+
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ, không thể xóa lịch hẹn lúc này!" });
+    }
+};
+
+
+module.exports = {
+    getAll,
+    getByID,
+    getByIDKH,
+    create,
+    updateStatus,
+    remove,
+    getAllTheoNgay,
+    getAllCT,
+    getCTByID,
+    createCT,
+    updateCT,
+    removeCT,
+    createBookingTransaction,
+    deleteFullBookingTransaction
+};

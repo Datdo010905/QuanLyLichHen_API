@@ -67,7 +67,7 @@ const AccountPage: React.FC = () => {
     const handleEditClick = (row: TaiKhoan) => {
         setFormData({
             accUsername: row.MATK ? row.MATK.trim() : '',
-            accPassword: row.PASS ? row.PASS.trim() : '', 
+            accPassword: row.PASS ? row.PASS.trim() : '',
             accRole: row.PHANQUYEN ? String(row.PHANQUYEN) : '',
             accStatus: row.TRANGTHAI ? row.TRANGTHAI.trim() : 'Hoạt động',
         });
@@ -137,38 +137,23 @@ const AccountPage: React.FC = () => {
 
         try {
             if (modalType === 'add') {
-               //CHECK TRÙNG CHO 404
-                let isExist = false;
-                try {
-                    const checkExist = await taikhoanApi.getById(formData.accUsername);
-                    if (checkExist && checkExist.data.success) {
-                        isExist = true;
-                    }
-                } catch (err: any) {
-                    if (err.response && err.response.status === 404) {
-                        isExist = false; 
-                    } else {
-                        throw err;
-                    }
-                }
 
-                if (isExist) {
-                    toast.error("Tài khoản đã tồn tại!");
-                    return;
-                }
                 await taikhoanApi.create(submitData);
-
                 toast.success("Thêm tài khoản thành công!");
+
             } else {
                 await taikhoanApi.update(formData.accUsername, submitData);
                 toast.success("Cập nhật tài khoản thành công!");
             }
             setModalType('none'); // Đóng form
             fetchData(); // Tải lại dữ liệu
-        } catch (error) {
-            console.error("Lỗi:", error);
-            toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
-
+        } catch (error: any) {
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
 
@@ -180,9 +165,13 @@ const AccountPage: React.FC = () => {
             toast.success("Xóa tài khoản thành công!");
             setIsDeleteModalOpen(false);
             fetchData(); // Load lại bảng
-        } catch (error) {
-            console.error("Lỗi xóa:", error);
-            toast.error("Xóa thất bại!");
+        } catch (error: any) {
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
 
@@ -258,7 +247,7 @@ const AccountPage: React.FC = () => {
                         whiteSpace: 'nowrap',
                         ...style
                     }}>
-                    {codeStatus}
+                        {codeStatus}
                     </span>
                 )
             }

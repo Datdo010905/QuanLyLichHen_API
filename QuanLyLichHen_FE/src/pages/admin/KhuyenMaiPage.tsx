@@ -88,7 +88,7 @@ const KhuyenMaiPage = () => {
             promotionValue: row.GIATRI ? row.GIATRI.toString() : '0',
             promotionStatus: row.TRANGTHAI ? row.TRANGTHAI.trim() : '',
         });
-        setFormErrors({}); 
+        setFormErrors({});
         setModalType('edit');
     };
     //xử lý thay đổi form
@@ -171,22 +171,7 @@ const KhuyenMaiPage = () => {
         };
         try {
             if (modalType === 'add') {
-                // Check 404 cho hàm kiểm tra tồn tại
-                let isExist = false;
-                try {
-                    const ex = await khuyenmaiApi.getById(formData.promotionID);
-                    if (ex && ex.data.success) isExist = true;
-                } catch (err: any) {
-                    if (err.response && err.response.status === 404) isExist = false;
-                    else throw err;
-                }
-
-                if (isExist) {
-                    toast.error("Mã khuyến mại đã tồn tại!");
-                    return;
-                }
                 await khuyenmaiApi.create(submitData);
-
                 toast.success("Thêm khuyến mại thành công!");
             } else {
                 await khuyenmaiApi.update(formData.promotionID, submitData);
@@ -194,10 +179,13 @@ const KhuyenMaiPage = () => {
             }
             setModalType('none'); // Đóng form
             fetchData(); // Tải lại dữ liệu
-        } catch (error) {
-            console.error("Lỗi:", error);
-            toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
-
+        } catch (error: any) {
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
 
@@ -209,9 +197,13 @@ const KhuyenMaiPage = () => {
             toast.success("Xóa khuyến mại thành công!");
             setIsDeleteModalOpen(false);
             fetchData(); // Load lại bảng
-        } catch (error) {
-            console.error("Lỗi xóa:", error);
-            toast.error("Xóa thất bại!");
+        } catch (error: any) {
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
     const status: Record<string, React.CSSProperties> = {
@@ -296,7 +288,7 @@ const KhuyenMaiPage = () => {
                     type="text"
                     id="promotionName"
                     placeholder="VD: Giảm giá mùa hè"
-                    value={formData.promotionName} 
+                    value={formData.promotionName}
                     onChange={handleChange}
                 />
                 {formErrors.promotionName && <span style={{ color: 'red', fontSize: '0.85rem' }}>{formErrors.promotionName}</span>}
@@ -307,7 +299,7 @@ const KhuyenMaiPage = () => {
                 <textarea
                     id="promotionDesc"
                     rows={3}
-                    value={formData.promotionDesc} 
+                    value={formData.promotionDesc}
                     onChange={handleChange}
                 ></textarea>
                 {formErrors.promotionDesc && <span style={{ color: 'red', fontSize: '0.85rem' }}>{formErrors.promotionDesc}</span>}
@@ -329,7 +321,7 @@ const KhuyenMaiPage = () => {
                 <input
                     type="date"
                     id="promotionKT"
-                    value={formData.promotionKT} 
+                    value={formData.promotionKT}
                     onChange={handleChange}
                 />
                 {formErrors.promotionKT && <span style={{ color: 'red', fontSize: '0.85rem' }}>{formErrors.promotionKT}</span>}
@@ -340,7 +332,7 @@ const KhuyenMaiPage = () => {
                 <input
                     type="number"
                     id="promotionValue"
-                    value={formData.promotionValue} 
+                    value={formData.promotionValue}
                     onChange={handleChange}
                 />
                 {formErrors.promotionValue && <span style={{ color: 'red', fontSize: '0.85rem' }}>{formErrors.promotionValue}</span>}

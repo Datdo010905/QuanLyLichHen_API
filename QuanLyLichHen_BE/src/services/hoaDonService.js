@@ -81,7 +81,60 @@ const createCT = async (model) => {
 
 const deleteCT = async (ma) => await prisma.cHITIETHOADON.deleteMany({ where: { MAHD: ma } });
 
+
+const createHoaDonWithDetails = async (invoiceModel, detailsArray) => {
+
+    return await prisma.$transaction(async (tx) => {
+        
+        //Tạo Hóa Đơn
+        const newInvoice = await tx.hOADON.create({
+            data: {
+                MAHD: invoiceModel.MAHD || invoiceModel.mahd,
+                MAKH: invoiceModel.MAKH || invoiceModel.makh || null,
+                MAKM: invoiceModel.MAKM || invoiceModel.makm || null,
+                MALICH: invoiceModel.MALICH || invoiceModel.malich || null,
+                MANV: invoiceModel.MANV || invoiceModel.manv,
+                TONGTIEN: Number(invoiceModel.TONGTIEN || invoiceModel.tongtien || 0),
+                HINHTHUCTHANHTOAN: invoiceModel.HINHTHUCTHANHTOAN || invoiceModel.hinhthucthanhtoan,
+                TRANGTHAI: invoiceModel.TRANGTHAI || invoiceModel.trangthai,
+                NGAYTHANHTOAN: new Date(invoiceModel.NGAYTT || invoiceModel.ngaytt)
+            }
+        });
+
+        //chi tiết hoá đơn
+        //thêm mã hd và gắn lại
+        const detailsToInsert = detailsArray.map(item => ({
+            MAHD: newInvoice.MAHD,
+            MADV: item.MADV || item.madv,
+            SOLUONG: Number(item.SOLUONG || item.soluong),
+            DONGIA: Number(item.DONGIA || item.dongia || 0),
+            THANHTIEN: Number(item.THANHTIEN || item.thanhtien || 0),
+        }));
+
+        // Insert chi tiết
+        await tx.cHITIETHOADON.createMany({
+            data: detailsToInsert
+        });
+
+
+        return newInvoice;
+    });
+};
+
+const deleteHoaDonWithDetails = async (mahd) => {
+    return await prisma.$transaction(async (tx) => {
+        await tx.cHITIETHOADON.deleteMany({
+            where: { MAHD: mahd }
+        });
+
+        const deletedInvoice = await tx.hOADON.delete({
+            where: { MAHD: mahd }
+        });
+
+        return deletedInvoice;
+    });
+};
 module.exports = {
     getAllHoaDon, getHoaDonByID, createHoaDon, updateHoaDon, deleteHoaDon, getHoaDonTheoNgay,
-    getAllCT, getCTByID, createCT, deleteCT
+    getAllCT, getCTByID, createCT, deleteCT, createHoaDonWithDetails, deleteHoaDonWithDetails
 };

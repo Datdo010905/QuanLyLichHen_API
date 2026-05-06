@@ -290,23 +290,13 @@ const HoaDonPage = () => {
         try {
 
             if (modalType === 'add') {
-                // Check 404 cho hàm kiểm tra tồn tại
-                let isExist = false;
-                try {
-                    const checkExist = await hoadonApi.getById(formData.hoadonID);
-                    if (checkExist && checkExist.data.success) isExist = true;
-                } catch (err: any) {
-                    if (err.response && err.response.status === 404) isExist = false;
-                    else throw err;
-                }
 
-                if (isExist) {
-                    toast.error("Hóa đơn đã tồn tại!");
-                    return;
-                }
-                await hoadonApi.create(submitData);
-                await hoadonApi.createCT(submitDataCT);
-                toast.success("Thêm hóa đơn thành công!");
+                const combinedData = {
+                    invoice: submitData,
+                    details: [submitDataCT]// để mảng để BE map 
+                };
+                const res = await hoadonApi.checkout(combinedData);
+                toast.success(res.data.message || "Thêm hóa đơn thành công!");
 
             }
             else if (modalType === 'edit') {
@@ -316,10 +306,6 @@ const HoaDonPage = () => {
                     toast.error("Hóa đơn đã " + trangthaiHienTai + ", không thể thay đổi trạng thái nữa!");
                     return;
                 }
-                // if (trangthaiHienTai === "Chưa thanh toán" && trangthaiMoi !== "Đã thanh toán" && trangthaiMoi !== "Đã huỷ") {
-                //     toast.error("Trạng thái phải theo quy trình: Chưa thanh toán -> Đã thanh toán hoặc -> Đã huỷ");
-                //     return;
-                // }
 
                 await hoadonApi.update(formData.hoadonID, submitData);
                 toast.success("Cập nhật hóa đơn thành công!");
@@ -339,9 +325,14 @@ const HoaDonPage = () => {
             }
             setModalType('none'); // Đóng form
             fetchData(); // Tải lại dữ liệu
-        } catch (error) {
+        } catch (error: any) {
             console.error("Lỗi:", error);
-            toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
 
@@ -359,25 +350,24 @@ const HoaDonPage = () => {
                 toast.error("Chỉ có thể xóa những hóa đơn đã huỷ!");
                 return;
             }
-            try {
-                await hoadonApi.deleteCT(idToDelete.trim());
+            const response = await hoadonApi.deleteFull(idToDelete);
+            
+            if (response.data.success) {
+                toast.success(response.data.message || "Xóa hóa đơn thành công!");
+                setIsDeleteModalOpen(false); 
+                fetchData(); // Load lại bảng
             }
-            catch (error) {
-                console.error("Lỗi xóa chi tiết:", error);
-            }
-
-            await hoadonApi.delete(idToDelete.trim());
-
-            toast.success("Xóa hóa đơn thành công!");
-            setIsDeleteModalOpen(false);
-            fetchData(); // Load lại bảng
             if (idToDelete === IDtoView) {
                 setIDtoView(null);
                 setViewDetailsList([]);
             }
-        } catch (error) {
-            console.error("Lỗi xóa:", error);
-            toast.error("Xóa thất bại!");
+        } catch (error: any) {
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
     const handleDeleteClick = (row: HoaDon) => {

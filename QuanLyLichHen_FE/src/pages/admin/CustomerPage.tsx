@@ -185,18 +185,18 @@ const CustomerPage: React.FC = () => {
     const handleDeleteConfirm = async () => {
         if (!idToDelete || !sdtToDelete) return;
         try {
-            //Xóa Khách Hàng trước
-            await customerApi.delete(idToDelete);
+            const response = await customerApi.deleteFull(idToDelete);
 
-            //Xóa Tài Khoản sau
-            await taikhoanApi.delete(sdtToDelete);
-
-            toast.success("Xóa khách hàng thành công!");
+            toast.success(response.data.message || "Xóa khách hàng thành công!");
             setIsDeleteModalOpen(false);
             fetchData(); // Load lại bảng
         } catch (error: any) {
-            console.error("Lỗi xóa:", error);
-            toast.error(error.response?.data?.message || "Xóa thất bại! Vui lòng kiểm tra lại dữ liệu.");
+            // HỨNG LỖI TỪ BACKEND
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+            }
         }
     };
     //Định nghĩa cột cho DataTable theo api trả về
