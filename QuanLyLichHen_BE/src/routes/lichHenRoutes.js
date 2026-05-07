@@ -6,6 +6,7 @@ const lichHenController = require('../controllers/lichHenController');
 router.get('/get-all-lichhen', lichHenController.getAll);
 router.get('/get-byId-lichhen/:id', lichHenController.getByID);
 router.get('/get-byIdKH-lichhen/:id', lichHenController.getByIDKH);
+router.get('/get-byIdNV-lichhen/:id', lichHenController.getByNhanVien);
 router.post('/insert-lichhen', lichHenController.create);
 router.put('/update-lichhen/:id', lichHenController.updateStatus);
 router.delete('/delete-lichhen/:id', lichHenController.remove);

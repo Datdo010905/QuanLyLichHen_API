@@ -8,9 +8,48 @@ const getLichHenByID = async (ma) => await prisma.lICHHEN.findUnique({ where: { 
 
 const getLichHenByIDKH = async (ma) => await prisma.lICHHEN.findMany({ where: { MAKH: ma } });
 
+const getLichHenTheoNhanVien = async (matk) => {
+
+    const cleanMatk = matk.trim();
+
+    //TÌM MÃ NHÂN VIÊN TỪ TÀI KHOẢN
+    const nhanVien = await prisma.nHANVIEN.findFirst({
+        where: {
+            MATK: cleanMatk
+        }
+    });
+    if (!nhanVien) {
+        console.log("Tài khoản này chưa được liên kết với nhân viên nào!");
+        return [];
+    }
+
+    const manvThucTe = nhanVien.MANV;
+
+    return await prisma.lICHHEN.findMany({
+        where: {
+            // Lọc những Lịch hẹn mà có ít nhất một chi tiết chứa MANV này
+            CHITIETLICHHEN: {
+                some: {
+                    MANV: manvThucTe
+                }
+            }
+        },
+        // lấy thông tin liên quan
+        include: {
+            KHACHHANG: true,
+            CHITIETLICHHEN: {
+                where: { MANV: manvThucTe } //lấy đúng phần việc của ông stylist này
+            }
+        },
+        orderBy: {
+            NGAYHEN: 'desc' // Lịch mới nhất hiện lên đầu
+        }
+    });
+};
+
 const createLichHen = async (model) => {
     const gioGoc = model.GIOHEN || model.giohen;
-    
+
     // tạo thành chuỗi chuẩn ISO
     const gioHenChuanISO = new Date(`1970-01-01T${gioGoc}:00.000Z`);
 
@@ -92,6 +131,6 @@ const deleteCT = async (ma) => {
 };
 
 module.exports = {
-    getAllLichHen, getLichHenByID, getLichHenByIDKH, createLichHen, updateTrangThai, deleteLichHen, getLichHenTheoNgay,
+    getAllLichHen, getLichHenByID, getLichHenByIDKH, getLichHenTheoNhanVien, createLichHen, updateTrangThai, deleteLichHen, getLichHenTheoNgay,
     getAllCT, getCTByID, createCT, updateCT, deleteCT
 };

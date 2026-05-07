@@ -30,6 +30,10 @@ const BookingApi = {
     getAllByIdKH(id: string) {
         return axiosClient.get(`/api/lichhen/get-byIdKH-lichhen/${id}`);
     },
+    getAllByIdNV(id: string) {
+        return axiosClient.get(`/api/lichhen/get-byIdNV-lichhen/${id}`);
+    },
+
     create(data: Booking) {
         return axiosClient.post('/api/lichhen/insert-lichhen', data);
     },
@@ -67,7 +71,7 @@ const BookingApi = {
     },
 
     createFull: (data: { booking: Booking, details: BookingDetails }) => {
-        return axiosClient.post('/api/lichhen/create-full', data); 
+        return axiosClient.post('/api/lichhen/create-full', data);
     },
 
     deleteFull: (id: string) => {

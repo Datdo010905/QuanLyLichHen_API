@@ -18,6 +18,8 @@ const BookingPage = () => {
     const [IDtoView, setIDtoView] = useState<string | null>(null); // Lưu ID cần xem chi tiết
     const [viewDetailsList, setViewDetailsList] = useState<BookingDetails[]>([]);
 
+    const user = localStorage.getItem('username');
+    const role = localStorage.getItem('phanquyen');
     //State dùng chung cho tìm kiếm
     const { searchTerm } = useSearch();
 
@@ -75,12 +77,17 @@ const BookingPage = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const resBooking = await bookingApi.getAll();
+            if (role === "3") {
+                const resBooking = await bookingApi.getAllByIdNV(user?.trim() || '');
+                setBookingList(resBooking.data.data);
+            } else {
+                const resBooking = await bookingApi.getAll();
+                setBookingList(resBooking.data.data);
+            }
+
             const resCustomer = await customerApi.getAll();
             const resDichVu = await dichVuApi.getAll();
             const resNhanVien = await staffApi.getAll();
-
-            const resBookingDetails = await bookingApi.getAllCT();
 
             if (resCustomer.data.success) {
                 setCustomerList(resCustomer.data.data);
@@ -91,12 +98,12 @@ const BookingPage = () => {
             if (resNhanVien.data.success) {
                 setNhanVienList(resNhanVien.data.data);
             }
+
+            const resBookingDetails = await bookingApi.getAllCT();
             if (resBookingDetails.data.success) {
                 setBookingDetailsList(resBookingDetails.data.data);
             }
 
-
-            setBookingList(resBooking.data.data);
         } catch (err) {
             setError("Không thể tải dữ liệu từ máy chủ.");
         } finally {

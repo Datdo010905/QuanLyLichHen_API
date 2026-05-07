@@ -96,7 +96,7 @@ const DichVuDetailsPage = () => {
 					<div className="itemchitiet" style={{ border: 'none' }}>
 						{/* Hiển thị ảnh chính từ DB */}
 						<img id="slide_dv" className="pic_itemchitiet" title={dichVu.TENDV}
-							src={`/${dichVu.HINH}`} alt={dichVu.TENDV} />
+							src={`${dichVu.HINH}`} alt={dichVu.TENDV} />
 					</div>
 				</div>
 

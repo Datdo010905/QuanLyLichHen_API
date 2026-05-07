@@ -56,6 +56,35 @@ const getByIDKH = async (req, res) => {
         });
     }
 };
+
+
+const getByNhanVien = async (req, res) => {
+    try {
+        //Lấy mã nhân viên từ URL (/api/lichhen/get-byIdNV-lichhen/NV001)
+        const manv = req.params.id;
+
+        if (!manv) {
+            return res.status(400).json({ success: false, message: "Thiếu mã nhân viên!" });
+        }
+
+        const data = await lichHenService.getLichHenTheoNhanVien(manv);
+
+        return res.status(200).json({
+            success: true,
+            message: "Lấy danh sách lịch hẹn cho nhân viên thành công!",
+            data: data
+        });
+
+    } catch (error) {
+        console.error("Lỗi Controller getByNhanVien:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Lỗi máy chủ: " + error.message
+        });
+    }
+};
+
+
 const create = async (req, res) => {
     try {
         const data = req.body;
@@ -325,6 +354,7 @@ module.exports = {
     getAll,
     getByID,
     getByIDKH,
+    getByNhanVien,
     create,
     updateStatus,
     remove,

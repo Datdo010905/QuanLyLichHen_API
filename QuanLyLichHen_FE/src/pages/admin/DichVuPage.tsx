@@ -172,11 +172,9 @@ const DichVuPage: React.FC = () => {
         submitData.append('quyTrinh', formData.serviceProcedure);
         submitData.append('loai', formData.serviceType);
 
-        if (imageFile) submitData.append('fileAnh', imageFile);
-        if (!imageFile) {
-            setFormErrors((prev) => ({ ...prev, serviceImg: "Vui lòng chọn ảnh cho dịch vụ!" }));
-            return;
-        }
+        if (imageFile)
+             submitData.append('fileAnh', imageFile);
+
         try {
             if (modalType === 'add') {
 
