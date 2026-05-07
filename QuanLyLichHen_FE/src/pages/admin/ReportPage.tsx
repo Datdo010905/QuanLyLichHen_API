@@ -5,13 +5,18 @@ import BookingApi, { Booking, BookingDetails } from "../../api/bookingApi";
 import StaffApi, { NhanVien, TopStaffData } from "../../api/staffApi"
 import dichVuApi, { DichVu, TopDVData } from "../../api/dichvuApi";
 import hoadonApi, { HoaDon, HoaDonDetails } from "../../api/hoadonApi";
+import thongkeApi from "../../api/thongkeApi";
 import { toast } from "react-toastify";
 import DataTable, { Column } from '../../components/ui/DataTable';
-
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Legend } from 'recharts';
 const ReportPage = () => {
 
     // const [totalLichHen, setTotalLichHen] = useState(0);
     // const [totalHoaDon, setTotalHoaDon] = useState(0);
+
+    const [dataChart, setDataChart] = useState([]);
+    const [dataTrangThai, setDataTrangThai] = useState([]);
 
     const [bookingList, setbookingList] = useState<Booking[]>([]);
     const [bookingDetailsList, setbookingDetailsList] = useState<BookingDetails[]>([]);
@@ -58,8 +63,6 @@ const ReportPage = () => {
         if (resHoaDonDetails.data.success) {
             setHoadonDetailsList(resHoaDonDetails.data.data);
         }
-
-
 
     }
     const checkOK = () => {
@@ -162,6 +165,41 @@ const ReportPage = () => {
     useEffect(() => {
         fetchData();
     }, [])
+
+    useEffect(() => {
+        // Gọi API lấy data thống kê
+        const fetchThongKe = async () => {
+            try {
+                const res = await thongkeApi.thongKeDT();
+                if (res && res.data && res.data.success) {
+                    setDataChart(res.data.data);
+                }
+            } catch (error) {
+                console.error("Lỗi lấy data thống kê", error);
+            }
+        };
+        fetchThongKe();
+        const fetchTrangThai = async () => {
+            try {
+                const res = await thongkeApi.getThongKeTrangThai();
+                if (res && res.data && res.data.success) {
+                    setDataTrangThai(res.data.data);
+                }
+            } catch (error) {
+                console.error("Lỗi lấy data trạng thái", error);
+            }
+        };
+        fetchTrangThai();
+    }, []);
+
+    // Bảng màu cho các mảnh ghép của biểu đồ
+    const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'];
+
+    // Hàm format tiền tệ (Ví dụ: 1000000 -> 1.000.000 đ)
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+    };
+
 
     const [formData, setFormData] = useState({
         start: '',
@@ -378,7 +416,7 @@ const ReportPage = () => {
                     />
                 </div>
 
-                <div className="panel" style={{ "marginTop": "20px" }}>
+                {/* <div className="panel" style={{ "marginTop": "20px" }}>
                     <div className="report-filter">
                         <h3>Top Dịch Vụ hay dùng</h3>
                         <button onClick={handleClickExcel} className="btn primary">
@@ -395,8 +433,78 @@ const ReportPage = () => {
                         </button>
                     </div>
                     <DataTable<TopStaffData> columns={staffColumns} data={TopNV} />
-                </div>
+                </div> */}
 
+            </div>
+            <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+                <h2 style={{ textAlign: 'center', color: '#333', marginBottom: '20px' }}>
+                    Biểu đồ Doanh thu năm 2026
+                </h2>
+
+                {/* Khung chứa biểu đồ (Responsive để tự co giãn) */}
+                <div style={{ width: '100%', height: 400 }}>
+                    <ResponsiveContainer>
+                        <BarChart
+                            data={dataChart}
+                            margin={{ top: 20, right: 30, left: 40, bottom: 5 }}
+                        >
+                            {/* Lưới nền */}
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+
+                            {/* Trục X hiển thị tên Tháng */}
+                            <XAxis dataKey="name" />
+
+                            {/* Trục Y hiển thị Tiền */}
+                            <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
+
+                            {/* Box thông tin khi trỏ chuột vào cột */}
+                            <Tooltip formatter={(value: any) => formatCurrency(value)} />
+
+                            {/* Cột hiển thị dữ liệu */}
+                            <Bar
+                                dataKey="DoanhThu"
+                                fill="#3b82f6"
+                                radius={[4, 4, 0, 0]} // Bo tròn góc trên của cột
+                                barSize={40} // Độ rộng của cột
+                            />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
+            
+            <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', marginTop: '20px' }}>
+                <h2 style={{ textAlign: 'center', color: '#333', marginBottom: '20px' }}>
+                    Tỉ lệ Trạng thái Lịch hẹn
+                </h2>
+
+                <div style={{ width: '100%', height: 350 }}>
+                    <ResponsiveContainer>
+                        <PieChart>
+                            {/* Cấu hình cái bánh */}
+                            <Pie
+                                data={dataTrangThai}
+                                cx="50%" // Căn giữa bề ngang
+                                cy="50%" // Căn giữa bề dọc
+                                innerRadius={80} // Tạo lỗ hổng ở giữa -> Trông như bánh Donut
+                                outerRadius={120} // Độ to của bánh
+                                paddingAngle={5} // Khoảng cách giữa các miếng bánh
+                                dataKey="value"
+                            >
+                                {/* Tô màu cho từng miếng bánh */}
+                                {dataTrangThai.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+
+                            {/* Hover chuột vào hiện thông tin */}
+                            <Tooltip />
+
+                            {/* Chú thích các màu ở dưới đáy biểu đồ */}
+                            <Legend verticalAlign="bottom" height={36} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
             </div>
         </>
     );
