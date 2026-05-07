@@ -1,6 +1,8 @@
 const lichHenService = require('../services/lichHenService');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { sendBookingPendingEmail } = require('../services/mailService');
+
 
 //API (LỊCH HẸN)
 const getAll = async (req, res) => {
@@ -83,7 +85,37 @@ const updateStatus = async (req, res) => {
         const id = req.params.id;
         const trangThai = req.body.TRANGTHAI || req.body.trangthai;
 
+        const oldBooking = await prisma.lICHHEN.findUnique({
+            where: { MALICH: id }
+        });
+        if (!oldBooking) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy lịch hẹn!" });
+        }
+
         const updatedData = await lichHenService.updateTrangThai(id, trangThai);
+
+
+        const oldStatus = oldBooking.TRANGTHAI.trim();
+        const newStatus = updatedData.TRANGTHAI.trim();
+        //gửi mail thông báo khi lịch hẹn được duyệt
+        if (oldStatus !== "Đang chờ" && newStatus === "Đang chờ") {
+            
+            // Tìm thông tin khách hàng để lấy Email
+            const customer = await prisma.kHACHHANG.findUnique({
+                where: { MAKH: updatedData.MAKH }
+            });
+
+            //có email thì gửi
+            if (customer && customer.EMAIL) {
+                //Không dùng await để Frontend không phải đợi gửi mail xong mới nhận được phản hồi.
+                // chạy ngầm (Fire and Forget)
+                sendBookingPendingEmail(customer.EMAIL, {
+                    ...updatedData,
+                    HOTEN: customer.HOTEN
+                }).catch(err => console.log("Lỗi gửi mail ngầm:", err));
+            }
+        }
+
         return res.status(200).json({
             success: true,
             message: "Cập nhật trạng thái thành công!",
@@ -285,6 +317,8 @@ const deleteFullBookingTransaction = async (req, res) => {
         return res.status(500).json({ success: false, message: "Lỗi máy chủ, không thể xóa lịch hẹn lúc này!" });
     }
 };
+
+
 
 
 module.exports = {

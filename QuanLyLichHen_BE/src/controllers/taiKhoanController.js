@@ -1,6 +1,7 @@
 const taiKhoanService = require('../services/taiKhoanService');
-const nodemailer = require('nodemailer');
 const { PrismaClient } = require('@prisma/client');
+const { forgotPasswordEmail } = require('../services/mailService');
+
 const prisma = new PrismaClient();
 
 const getAll = async (req, res) => {
@@ -81,25 +82,13 @@ const remove = async (req, res) => {
     }
 };
 
-
-
-
-// CẤU HÌNH NGƯỜI GỬI EMAIL (SMTP)
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'dotiendat01092005@gmail.com', 
-        pass: 'gyku wkzp xhep xzgt'  //mã app auth
-    }
-});
-
 const forgotPassword = async (req, res) => {
     try {
         const { email, sdt } = req.body; // Giao diện yêu cầu nhập SDT và Email
 
         // check 
         const khachHang = await prisma.kHACHHANG.findFirst({
-            where: { SDT: sdt, EMAIL: email } 
+            where: { SDT: sdt, EMAIL: email }
         });
 
         if (!khachHang) {
@@ -115,22 +104,9 @@ const forgotPassword = async (req, res) => {
             data: { PASS: newPassword }
         });
 
-        //Gửi Email
-        const mailOptions = {
-            from: '"Hệ thống 30Shine Clone" <dotiendat01092005@gmail.com>',
-            to: email,//mail của khách hàng
-            subject: 'Khôi phục mật khẩu tài khoản',
-            html: `
-                <h3>Xin chào ${khachHang.HOTEN},</h3>
-                <p>Hệ thống đã nhận được yêu cầu cấp lại mật khẩu của bạn.</p>
-                <p>Mật khẩu mới của bạn là: <strong style="font-size: 20px; color: red;">${newPassword}</strong></p>
-                <p>Vui lòng đăng nhập bằng mật khẩu này và tiến hành đổi mật khẩu mới để bảo mật tài khoản.</p>
-                <br/>
-                <p>Trân trọng,</p>
-            `
-        };
-
-        await transporter.sendMail(mailOptions);
+        // GỬI MAIL NGẦM
+        forgotPasswordEmail(email, newPassword, khachHang.HOTEN)
+            .catch(err => console.error("Lỗi gửi mail cấp lại pass ngầm:", err));
 
         return res.status(200).json({ success: true, message: "Mật khẩu mới đã được gửi vào Email của bạn!" });
 

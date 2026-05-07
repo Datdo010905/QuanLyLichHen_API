@@ -3,7 +3,6 @@ import { Navigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { toast } from 'react-toastify';
 import CustomerApi from "../../api/customerApi";
-import TaiKhoanApi from "../../api/taikhoanApi";
 
 const ProfilePage = () => {
 	const [showPwd, setShowPwd] = useState(false);
@@ -156,10 +155,10 @@ const ProfilePage = () => {
 							<label htmlFor="cusEmail">Email</label>
 							<input
 								id="cusEmail"
-								type="text"
+								type="email"
 								placeholder="Email"
-								readOnly
-								value={formDataKH.cusEmail || ""}
+								value={formDataKH.cusEmail}
+								onChange={handleChange}
 							/>
 
 							<label htmlFor="accPassword">Mật khẩu mới</label>

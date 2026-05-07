@@ -221,10 +221,12 @@ const DatLichPage = () => {
 					GIA_DUKIEN: dichVuSelected ? Number(dichVuSelected.GIADV) : 0,
 					GHICHU: formDataDetails.ghichu || 'Không có ghi chú'
 				};
-				//gọi API tạo lịch hẹn và chi tiết lịch hẹn
-				await bookingApi.create(submitData);
-				await bookingApi.createCT(submitDataCT);
 
+				const combinedData = {
+                    booking: submitData,
+                    details: submitDataCT
+                };
+                await bookingApi.createFull(combinedData);
 				toast.success("Đặt lịch thành công!");
 
 				setModalType('none');
@@ -235,9 +237,17 @@ const DatLichPage = () => {
 				}, 2000);
 			}
 		}
-		catch (error) {
+		catch (error: any) {
+			console.error("Lỗi:", error);
 			console.error("Lỗi khi kiểm tra tài khoản:", error);
 			toast.error("Đã xảy ra lỗi khi xác thực tài khoản!");
+			// HỨNG LỖI TỪ BACKEND
+			if (error.response && error.response.data && error.response.data.message) {
+				toast.error(error.response.data.message);
+			} else {
+				toast.error("Thao tác thất bại, vui lòng kiểm tra lại!");
+			}
+
 		}
 	}
 
