@@ -125,7 +125,7 @@ const Header = () => {
                 <ul id="searchResults" className="search-dropdown" style={{ display: 'block', marginLeft: '55px' }}>
                   {filteredServices.map((dv, index) => (
                     <li key={index} onClick={() => handleSelectService(dv)} style={{ cursor: "pointer" }}>
-                      <img src={dv.HINH ? `/${dv.HINH}` : '/img/logo.png'} alt="img" />
+                      <img src={dv.HINH ? `${dv.HINH}` : '/img/logo.png'} alt="img" />
                       <div>
                         <b>{dv.TENDV}</b><br />
                         <i style={{ lineHeight: "22px", marginRight: "20px" }}>{formatCurrency(dv.GIADV)}</i>

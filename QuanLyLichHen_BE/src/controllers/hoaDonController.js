@@ -1,5 +1,6 @@
 const hoaDonService = require('../services/hoaDonService');
-
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 // --- BẢNG HOÁ ĐƠN ---
 const getAll = async (req, res) => {
     try {
@@ -70,11 +71,35 @@ const getCTByID = async (req, res) => {
 
 const createCT = async (req, res) => {
     try {
-        const newData = await hoaDonService.createCT(req.body);
-        return res.status(201).json({ success: true, message: "Thêm chi tiết thành công!", data: newData });
-    } catch (error) { return res.status(500).json({ success: false, message: error.message }); }
-};
 
+        const { MAHD, MADV } = req.body;
+        const existingDetail = await prisma.cHITIETHOADON.findFirst({
+            where: {
+                MAHD: MAHD,
+                MADV: MADV
+            }
+        });
+        if (existingDetail) {
+            return res.status(400).json({
+                success: false,
+                message: "Dịch vụ này đã tồn tại trong hóa đơn!"
+            });
+        }
+
+        const newData = await hoaDonService.createCT(req.body);
+        return res.status(201).json({
+            success: true,
+            message: "Thêm chi tiết thành công!",
+            data: newData
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
 const removeCT = async (req, res) => {
     try {
         await hoaDonService.deleteCT(req.params.id);
@@ -93,32 +118,32 @@ const createFull = async (req, res) => {
         }
 
         const newData = await hoaDonService.createHoaDonWithDetails(invoice, details);
-        
+
         return res.status(201).json({ success: true, message: "Thanh toán và lập hóa đơn thành công!", data: newData });
-    } catch (error) { 
-        return res.status(500).json({ success: false, message: error.message }); 
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
 
 const deleteFull = async (req, res) => {
     try {
         // Lấy id từ URL
-        const id = req.params.id; 
+        const id = req.params.id;
 
         await hoaDonService.deleteHoaDonWithDetails(id);
 
-        return res.status(200).json({ 
-            success: true, 
-            message: "Đã xóa thành công hóa đơn và chi tiết!" 
+        return res.status(200).json({
+            success: true,
+            message: "Đã xóa thành công hóa đơn và chi tiết!"
         });
 
     } catch (error) {
         console.error("Lỗi xóa Hóa đơn:", error);
-        
+
         if (error.code === 'P2025') {
             return res.status(404).json({ success: false, message: "Không tìm thấy hóa đơn này!" });
         }
-        
+
         return res.status(500).json({ success: false, message: "Lỗi máy chủ, thao tác xóa bị hủy!" });
     }
 };

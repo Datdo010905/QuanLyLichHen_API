@@ -74,7 +74,8 @@ const DichVuDetailsPage = () => {
 	// Hàm render quy trình hoặc mô tả dạng list
 	const renderListItems = (text?: string) => {
 		if (!text) return <li>Đang cập nhật...</li>;
-		const items = text.split(/[,\n]/).filter(item => item.trim() !== "");
+		//loại bỏ dấu ',' và '-'
+		const items = text.split(/[,\n-]/).filter(item => item.trim() !== "");
 		return items.map((item, index) => <li key={index}>{item.trim()}</li>);
 	};
 

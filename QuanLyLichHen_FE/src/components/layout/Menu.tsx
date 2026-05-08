@@ -14,6 +14,7 @@ const Menu: React.FC<MenuProps> = ({ menus }) => {
     <div id="menu">
       <div id="menu-item">
         <ul>
+          {/* menu của mobile */}
           <li>
             <div>
               <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
@@ -29,7 +30,7 @@ const Menu: React.FC<MenuProps> = ({ menus }) => {
             </ul>
           </li>
 
-          {/* Lặp mảng menus động */}
+          {/* Lặp mảng menus động cho pc */}
           {menus.map((x: MenuType, index: number) => (
             <li key={index}>
               <NavLink

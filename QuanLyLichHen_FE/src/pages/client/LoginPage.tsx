@@ -4,7 +4,7 @@ import "../../assets/css/login.css";
 import authApi, { LoginPayload } from '../../api/authApi';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
-import { log } from "console";
+
 const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();

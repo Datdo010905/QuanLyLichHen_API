@@ -128,7 +128,7 @@ const updateStatus = async (req, res) => {
         const newStatus = updatedData.TRANGTHAI.trim();
         //gửi mail thông báo khi lịch hẹn được duyệt
         if (oldStatus !== "Đang chờ" && newStatus === "Đang chờ") {
-            
+
             // Tìm thông tin khách hàng để lấy Email
             const customer = await prisma.kHACHHANG.findUnique({
                 where: { MAKH: updatedData.MAKH }
@@ -222,12 +222,27 @@ const getCTByID = async (req, res) => {
 
 const createCT = async (req, res) => {
     try {
-        const newData = await lichHenService.createCT(req.body);
-        return res.status(201).json({
-            success: true,
-            message: "Thêm chi tiết thành công!",
-            data: newData
+
+        const { MALICH, MADV } = req.body;
+
+        const existingDetail = await prisma.cHITIETLICHHEN.findFirst({
+            where: {
+                MALICH: MALICH,
+                MADV: MADV
+            }
         });
+
+        if (existingDetail) {
+            throw new Error("Dịch vụ này đã được thêm vào lịch hẹn trước đó rồi!");
+        } else {
+            const newData = await lichHenService.createCT(req.body);
+            return res.status(201).json({
+                success: true,
+                message: "Thêm chi tiết thành công!",
+                data: newData
+            });
+        }
+
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -314,7 +329,7 @@ const deleteFullBookingTransaction = async (req, res) => {
         // Lấy id từ URL (/api/lichhen/delete-full/LH001)
         const id = req.params.id;
 
-        
+
         await prisma.$transaction(async (tx) => {
 
             //Xóa tất cả chi tiết

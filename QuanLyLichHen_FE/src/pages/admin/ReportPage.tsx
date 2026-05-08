@@ -193,7 +193,7 @@ const ReportPage = () => {
     }, []);
 
     // Bảng màu cho các mảnh ghép của biểu đồ
-    const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'];
+    const COLORS = ['#ef4444','#f59e0b','#10b981',   '#3b82f6', '#8b5cf6'];
 
     // Hàm format tiền tệ (Ví dụ: 1000000 -> 1.000.000 đ)
     const formatCurrency = (value: number) => {
@@ -488,7 +488,7 @@ const ReportPage = () => {
                                 cy="50%" // Căn giữa bề dọc
                                 innerRadius={80} // Tạo lỗ hổng ở giữa -> Trông như bánh Donut
                                 outerRadius={120} // Độ to của bánh
-                                paddingAngle={5} // Khoảng cách giữa các miếng bánh
+                                paddingAngle={2} // Khoảng cách giữa các miếng bánh
                                 dataKey="value"
                             >
                                 {/* Tô màu cho từng miếng bánh */}
