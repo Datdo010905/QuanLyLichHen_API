@@ -86,7 +86,7 @@ const BookingPage = () => {
             }
 
             const resCustomer = await customerApi.getAll();
-            const resDichVu = await dichVuApi.getAll();
+            const resDichVu = await dichVuApi.getAllDichVuClient();
             const resNhanVien = await staffApi.getAll();
 
             if (resCustomer.data.success) {

@@ -6,6 +6,7 @@ import Modal from "../../components/ui/Modal";
 import bookingApi, { Booking, BookingDetails } from "../../api/bookingApi";
 import staffApi, { NhanVien } from "../../api/staffApi";
 import TaiKhoanApi from "../../api/taikhoanApi";
+
 const DatLichPage = () => {
 
 	const [modalType, setModalType] = useState<'checkpass' | 'none'>('none');
@@ -15,7 +16,6 @@ const DatLichPage = () => {
 
 	//dùng dv cần xem bằng state
 	const [selectedDichVu, setSelectedDichVu] = useState<string>(localStorage.getItem("madvCanXem")?.trim() || "");
-
 	//state lựa chọn
 	const [dichVuList, setDichVuList] = useState<DichVu[]>([]);
 	const [nhanVienList, setNhanVienList] = useState<NhanVien[]>([]); // Dữ liệu nhân viên để đổ vào select
@@ -138,8 +138,14 @@ const DatLichPage = () => {
 		e.preventDefault();
 		//check mật khẩu trước rồi mới cho đặt lịch
 		//hiện popup xác nhận mật khẩu
-		if (!formData.bookingTime) {
+		const bookingDateTime = new Date(`${formData.bookingDate}T${formData.bookingTime}`);
+		const now = new Date();
+		if (!formData.bookingTime || !formData.bookingDate) {
 			toast.error("Hãy chọn thời điểm cần đặt lịch!");
+			return;
+		}
+		else if (bookingDateTime <= now) {
+			toast.error("Lịch hẹn phải ở sau thời gian hiện tại");
 			return;
 		}
 
@@ -223,10 +229,10 @@ const DatLichPage = () => {
 				};
 
 				const combinedData = {
-                    booking: submitData,
-                    details: submitDataCT
-                };
-                await bookingApi.createFull(combinedData);
+					booking: submitData,
+					details: submitDataCT
+				};
+				await bookingApi.createFull(combinedData);
 				toast.success("Đặt lịch thành công!");
 
 				setModalType('none');

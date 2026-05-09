@@ -173,7 +173,7 @@ const DichVuPage: React.FC = () => {
         submitData.append('loai', formData.serviceType);
 
         if (imageFile)
-             submitData.append('fileAnh', imageFile);
+            submitData.append('fileAnh', imageFile);
 
         try {
             if (modalType === 'add') {
@@ -323,6 +323,8 @@ const DichVuPage: React.FC = () => {
             <div className="form-group">
                 <label htmlFor="serviceProcedure">Quy trình:</label>
                 <textarea id="serviceProcedure" rows={3} value={formData.serviceProcedure} onChange={handleChange} />
+                {formErrors.serviceProcedure && <span style={{ color: 'red', fontSize: '0.85rem' }}>{formErrors.serviceProcedure}</span>}
+
             </div>
             <button type="submit" className="btn primary">{modalType === 'add' ? 'Lưu mới' : 'Cập nhật'}</button>
         </>

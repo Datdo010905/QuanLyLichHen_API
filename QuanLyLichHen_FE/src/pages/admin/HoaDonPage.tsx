@@ -398,8 +398,8 @@ const HoaDonPage = () => {
     };
     const handleEditClick = async (row: HoaDon) => {
         // Tìm chi nhánh của nhân viên thu ngân trong hoá đơn này
-        const thuNgan = nhanVienList.find(nv => nv.MANV.trim() === row.MANV.trim());
-        const machiNhanh = thuNgan ? thuNgan.MACHINHANH.trim() : '';
+        const thuNgan = nhanVienList.find(nv => nv.MANV?.trim() === row.MANV?.trim());
+        const machiNhanh = thuNgan ? thuNgan.MACHINHANH?.trim() : '';
         setFormData({
             hoadonID: String(row.MAHD || '').trim(),
             khachhangID: String(row.MAKH || '').trim(),

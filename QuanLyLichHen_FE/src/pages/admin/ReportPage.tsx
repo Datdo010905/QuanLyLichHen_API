@@ -416,7 +416,7 @@ const ReportPage = () => {
                     />
                 </div>
 
-                {/* <div className="panel" style={{ "marginTop": "20px" }}>
+                <div className="panel" style={{ "marginTop": "20px" }}>
                     <div className="report-filter">
                         <h3>Top Dịch Vụ hay dùng</h3>
                         <button onClick={handleClickExcel} className="btn primary">
@@ -433,7 +433,7 @@ const ReportPage = () => {
                         </button>
                     </div>
                     <DataTable<TopStaffData> columns={staffColumns} data={TopNV} />
-                </div> */}
+                </div>
 
             </div>
             <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
