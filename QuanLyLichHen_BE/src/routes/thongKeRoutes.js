@@ -4,5 +4,6 @@ const thongKeController = require('../controllers/thongKeController');
 
 router.get('/thongke/doanh-thu', thongKeController.getDoanhThuTheoThang)
 router.get('/thongke/trang-thai-lich', thongKeController.getThongKeTrangThaiLich);
+router.get('/thongke/khung-gio', thongKeController.getThongKeKhungGio);
 
 module.exports = router;

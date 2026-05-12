@@ -10,6 +10,9 @@ import { toast } from "react-toastify";
 import DataTable, { Column } from '../../components/ui/DataTable';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PieChart, Pie, Cell, Legend } from 'recharts';
+import { AreaChart, Area } from 'recharts';
+import { exportToExcel } from "../../utils/excelUtils";
+
 const ReportPage = () => {
 
     // const [totalLichHen, setTotalLichHen] = useState(0);
@@ -17,10 +20,11 @@ const ReportPage = () => {
 
     const [dataChart, setDataChart] = useState([]);
     const [dataTrangThai, setDataTrangThai] = useState([]);
+    const [dataKhungGio, setDataKhungGio] = useState<any[]>([]);
 
     const [bookingList, setbookingList] = useState<Booking[]>([]);
     const [bookingDetailsList, setbookingDetailsList] = useState<BookingDetails[]>([]);
-    const [hoadonList, setHoadonList] = useState<HoaDon[]>([]);
+
     const [hoadonDetailsList, setHoadonDetailsList] = useState<HoaDonDetails[]>([]);
 
     const [HoaDonList, setHoaDonList] = useState<HoaDon[]>([]);
@@ -179,21 +183,42 @@ const ReportPage = () => {
             }
         };
         fetchThongKe();
+        // Gọi API lấy data thống kê
         const fetchTrangThai = async () => {
             try {
-                const res = await thongkeApi.getThongKeTrangThai();
+                const res = await thongkeApi.getThongKeTrangThai('2026-01-01', '2026-12-31');
                 if (res && res.data && res.data.success) {
                     setDataTrangThai(res.data.data);
                 }
             } catch (error) {
-                console.error("Lỗi lấy data trạng thái", error);
+                console.error("Lỗi lấy data thống kê", error);
             }
         };
         fetchTrangThai();
+
+        // Gọi API lấy data thống kê
+        const fetchGio = async () => {
+            try {
+                const res = await thongkeApi.getThongKeGio('2026-01-01', '2026-12-31');
+                if (res && res.data && res.data.success) {
+                    setDataKhungGio(res.data.data);
+                }
+            } catch (error) {
+                console.error("Lỗi lấy data thống kê", error);
+            }
+        };
+        fetchGio();
     }, []);
 
-    // Bảng màu cho các mảnh ghép của biểu đồ
-    const COLORS = ['#ef4444','#f59e0b','#10b981',   '#3b82f6', '#8b5cf6'];
+    // Định nghĩa màu cố định cho từng trạng thái
+    const STATUS_COLOR_MAP: Record<string, string> = {
+        'Hoàn thành': '#10b981',
+        'Đã huỷ': '#ef4444',
+        'Đang chờ': '#722ed1',
+        'Đang thực hiện': '#fa8c16',
+        'Đã đặt': '#1890ff',
+        'Chưa xác định': '#94a3b8'
+    };
 
     // Hàm format tiền tệ (Ví dụ: 1000000 -> 1.000.000 đ)
     const formatCurrency = (value: number) => {
@@ -245,6 +270,17 @@ const ReportPage = () => {
                 setHoaDonList([]);
                 //setTotalHoaDon(0);
             }
+            //trạng thái
+            const res = await thongkeApi.getThongKeTrangThai(formData.start, formData.end);
+            if (res && res.data && res.data.success) {
+                setDataTrangThai(res.data.data);
+            }
+
+            //khung giờ
+            const resKhungGio = await thongkeApi.getThongKeGio(formData.start, formData.end);
+            if (resKhungGio.data?.success) {
+                setDataKhungGio(resKhungGio.data.data);
+            }
 
             toast.success('Xem báo cáo thành công!');
         }
@@ -261,8 +297,33 @@ const ReportPage = () => {
         await fetchData();
         toast.success('Làm mới thành công!');
     }
-    const handleClickExcel = async () => {
-        toast.info('Chức năng đang phát triển!');
+
+
+
+    const handleClickExcelDichVu = async () => {
+        //toast.info('Chức năng đang phát triển!');
+        //đổi tên cột sang tiếng Việt
+        const dataExport = TopDV.map((item, index) => ({
+            "STT": index + 1,
+            "Tên Dịch Vụ": item.tendv,
+            "Thời gian": item.thoigian,
+            "Giá (VNĐ)": item.giadv,
+            "Số Lần Dùng": item.solan
+        }));
+
+        exportToExcel(dataExport, "Bao_Cao_Top_Dich_Vu", "DichVu");
+    }
+
+
+    const handleClickExcelNhanVien = async () => {
+        //toast.info('Chức năng đang phát triển!');
+        const dataExport = TopNV.map((item, index) => ({
+            "STT": index + 1,
+            "Tên Nhân Viên": item.hoten,
+            "Số Lịch Hẹn": item.solich,
+        }));
+
+        exportToExcel(dataExport, "Bao_Cao_Nhan_Vien_Xuat_Sac", "NhanVien");
     }
 
     const getChiNhanhName = (branchCode: string) => {
@@ -312,10 +373,10 @@ const ReportPage = () => {
         { tieude: "Số điện thoại", cotnhandulieu: "sdt" },
         {
             tieude: "Chi nhánh", cotnhandulieu: "machinhanh", render: (row) => {
-                const style = branchStyles[row.machinhanh || ''] || {};
+                const style = branchStyles[row.machinhanh?.trim() || ''] || {};
                 return (
                     <span style={style}>
-                        {getChiNhanhName(row.machinhanh || '')}
+                        {getChiNhanhName(row.machinhanh?.trim() || '')}
                     </span>
                 );
             }
@@ -416,10 +477,127 @@ const ReportPage = () => {
                     />
                 </div>
 
+                {/* ===== BỐ CỤC CHIA 2 CỘT CHO BIỂU ĐỒ ===== */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
+
+                    {/* --- CỘT 1: BIỂU ĐỒ DOANH THU --- */}
+                    <div className="panel" style={{ margin: 0, padding: '20px' }}>
+                        <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>
+                            Doanh thu năm 2026
+                        </h2>
+
+                        <div style={{ width: '100%', height: 350 }}>
+                            {/* giúp chart tự do co giãn */}
+                            <ResponsiveContainer>
+                                <BarChart
+                                    data={dataChart}
+                                    margin={{ top: 20, right: 40, left: 0, bottom: 5 }}
+                                >
+                                    {/* lưới nền nét đứt và tắt cho trục Y */}
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={1} />
+                                    {/* data trục ngang */}
+                                    <XAxis dataKey="name" stroke="#a0aec0" />
+                                    {/* format số hiển thị */}
+                                    <YAxis tickFormatter={(value) => `${value / 1000000}M`} stroke="#a0aec0" />
+
+                                    {/* Hiện popup khi hover chuột */}
+                                    <Tooltip formatter={(value: any) => formatCurrency(value)} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                                    <Bar
+                                        dataKey="DoanhThu"
+                                        fill="#3b82f6"
+                                        radius={[4, 4, 0, 0]}
+                                        barSize={40}//độ rộng cột
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* --- CỘT 2: BIỂU ĐỒ TRẠNG THÁI --- */}
+                    <div className="panel" style={{ margin: 0, padding: '20px' }}>
+                        <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>
+                            Tỉ lệ trạng thái lịch hẹn
+                        </h2>
+
+                        <div style={{ width: '100%', height: 350 }}>
+                            <ResponsiveContainer>
+                                <PieChart>
+                                    <Pie
+                                        data={dataTrangThai}
+                                        cx="50%"//Vị trí tâm biểu đồ. ngang giữa
+                                        cy="50%"//dọc giữa
+                                        innerRadius={80}//bán kính bên trong
+                                        outerRadius={120}//bán kính ngooài
+                                        paddingAngle={2}//Khoảng cách giữa các miếng chart.
+                                        dataKey="value"//lấy data
+                                    >
+                                        {/* tô màu */}
+                                        {dataTrangThai.map((entry: any, index) => {
+                                            const fillColor = STATUS_COLOR_MAP[entry.name] || STATUS_COLOR_MAP['Chưa xác định'];
+                                            return (
+                                                <Cell key={`cell-${index}`} fill={fillColor} />//tô màu cho từng miếng
+                                            );
+                                        })}
+                                    </Pie>
+                                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                                    {/* ghi chú */}
+                                    <Legend verticalAlign="middle" layout="vertical" align="right" wrapperStyle={{ right: 20, top: '30%' }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                </div>
+
+                {/* ===== BÁO CÁO KHUNG GIỜ VÀNG */}
+                <div className="panel" style={{ marginTop: '20px', padding: '20px' }}>
+                    <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>
+                        Khung giờ vàng
+                    </h2>
+
+
+                    <div style={{ width: '100%', height: 350 }}>
+                        <ResponsiveContainer>
+                            <AreaChart
+                                data={dataKhungGio}
+                                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                            >
+                                {/* defs custom màu*/}
+                                <defs>
+                                    {/* dải màu đậm rồi nhạt từ trên xuống dưới */}
+                                    <linearGradient id="colorKhungGio" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+
+                                <XAxis dataKey="time" stroke="#a0aec0" />
+                                {/* ko cho số thập phân */}
+                                <YAxis stroke="#a0aec0" allowDecimals={false} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={1} />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                    itemStyle={{ color: '#c4b5fd' }}
+                                />
+
+                                {/* Cấu hình đổ bóng cho vùng dữ liệu (Area)  */}
+                                <Area
+                                    type="monotone" // Làm nét vẽ uốn lượn
+                                    dataKey="soLuong"
+                                    name="Lượt khách hàng"
+                                    stroke="#8b5cf6" // Màu nét đứt viền trên cùng
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#colorKhungGio)"//dùng màu đã cus
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
                 <div className="panel" style={{ "marginTop": "20px" }}>
                     <div className="report-filter">
                         <h3>Top Dịch Vụ hay dùng</h3>
-                        <button onClick={handleClickExcel} className="btn primary">
+                        <button onClick={handleClickExcelDichVu} className="btn primary">
                             <i className="fas fa-download"></i> Xuất Excel
                         </button>
                     </div>
@@ -428,7 +606,7 @@ const ReportPage = () => {
                 <div className="panel" style={{ "marginTop": "20px" }}>
                     <div className="report-filter">
                         <h3>Top Nhân Viên Xuất Sắc</h3>
-                        <button onClick={handleClickExcel} className="btn primary">
+                        <button onClick={handleClickExcelNhanVien} className="btn primary">
                             <i className="fas fa-download"></i> Xuất Excel
                         </button>
                     </div>
@@ -436,76 +614,7 @@ const ReportPage = () => {
                 </div>
 
             </div>
-            <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-                <h2 style={{ textAlign: 'center', color: '#333', marginBottom: '20px' }}>
-                    Biểu đồ Doanh thu năm 2026
-                </h2>
 
-                {/* Khung chứa biểu đồ (Responsive để tự co giãn) */}
-                <div style={{ width: '100%', height: 400 }}>
-                    <ResponsiveContainer>
-                        <BarChart
-                            data={dataChart}
-                            margin={{ top: 20, right: 30, left: 40, bottom: 5 }}
-                        >
-                            {/* Lưới nền */}
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-
-                            {/* Trục X hiển thị tên Tháng */}
-                            <XAxis dataKey="name" />
-
-                            {/* Trục Y hiển thị Tiền */}
-                            <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
-
-                            {/* Box thông tin khi trỏ chuột vào cột */}
-                            <Tooltip formatter={(value: any) => formatCurrency(value)} />
-
-                            {/* Cột hiển thị dữ liệu */}
-                            <Bar
-                                dataKey="DoanhThu"
-                                fill="#3b82f6"
-                                radius={[4, 4, 0, 0]} // Bo tròn góc trên của cột
-                                barSize={40} // Độ rộng của cột
-                            />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
-
-            
-            <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', marginTop: '20px' }}>
-                <h2 style={{ textAlign: 'center', color: '#333', marginBottom: '20px' }}>
-                    Tỉ lệ Trạng thái Lịch hẹn
-                </h2>
-
-                <div style={{ width: '100%', height: 350 }}>
-                    <ResponsiveContainer>
-                        <PieChart>
-                            {/* Cấu hình cái bánh */}
-                            <Pie
-                                data={dataTrangThai}
-                                cx="50%" // Căn giữa bề ngang
-                                cy="50%" // Căn giữa bề dọc
-                                innerRadius={80} // Tạo lỗ hổng ở giữa -> Trông như bánh Donut
-                                outerRadius={120} // Độ to của bánh
-                                paddingAngle={2} // Khoảng cách giữa các miếng bánh
-                                dataKey="value"
-                            >
-                                {/* Tô màu cho từng miếng bánh */}
-                                {dataTrangThai.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-
-                            {/* Hover chuột vào hiện thông tin */}
-                            <Tooltip />
-
-                            {/* Chú thích các màu ở dưới đáy biểu đồ */}
-                            <Legend verticalAlign="bottom" height={36} />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
         </>
     );
 };

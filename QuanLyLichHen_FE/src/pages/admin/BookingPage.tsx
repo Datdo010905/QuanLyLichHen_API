@@ -271,7 +271,7 @@ const BookingPage = () => {
             MADV: formData.dichvu?.trim(),
             MANV: formData.nhanvien?.trim(),
             SOLUONG: Number(formData.soluong),
-            GIA_DUKIEN: dichVuSelected ? Number(dichVuSelected.GIADV) : 0,
+            GIA_DUKIEN: dichVuSelected ? Number(dichVuSelected.GIADV)*Number(formData.soluong) : 0,
             GHICHU: formDataDetails.ghichu || 'Không có ghi chú'
         };
 
