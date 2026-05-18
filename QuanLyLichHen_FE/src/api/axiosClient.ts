@@ -2,7 +2,8 @@ import axios from 'axios';
 
 const axiosClient = axios.create({
   //baseURL: 'https://localhost:7157',  //netcore 5175
-  baseURL: 'http://localhost:5000', //nodejs 5000 ko có 's'
+  //baseURL: 'http://localhost:5000', //nodejs 5000 ko có 's'
+  baseURL: 'https://quanlylichhen-api.onrender.com', //render
   headers: {
     'Content-Type': 'application/json',
   },
