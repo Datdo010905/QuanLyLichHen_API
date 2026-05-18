@@ -5,7 +5,7 @@ import { useSearch } from '../../context/SearchContext';
 import { toast } from 'react-toastify';
 import DataTable, { Column } from '../../components/ui/DataTable';
 import staffApi, { NhanVien } from "../../api/staffApi";
-import taikhoanApi, { TaiKhoan } from "../../api/taikhoanApi";
+import { TaiKhoan } from "../../api/taikhoanApi";
 import { staffSchema } from "../../utils/staffSchema";
 
 const StaffPage: React.FC = () => {

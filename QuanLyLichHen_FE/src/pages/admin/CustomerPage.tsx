@@ -5,7 +5,6 @@ import { useSearch } from '../../context/SearchContext';
 import { toast } from 'react-toastify';
 import DataTable, { Column } from '../../components/ui/DataTable';
 import customerApi, { Customer } from "../../api/customerApi";
-import taikhoanApi, { TaiKhoan } from "../../api/taikhoanApi";
 import { customerSchema } from "../../utils/customerSchema";
 
 const CustomerPage: React.FC = () => {

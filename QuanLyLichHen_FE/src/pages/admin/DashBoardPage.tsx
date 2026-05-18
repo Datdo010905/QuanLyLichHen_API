@@ -1,9 +1,8 @@
 
 import StatCard from "../../components/ui/StatCard";
 import React, { useEffect, useState } from "react";
-import Modal from "../../components/ui/Modal";
 import CustomerApi from "../../api/customerApi";
-import BookingApi, { Booking } from "../../api/bookingApi";
+import BookingApi from "../../api/bookingApi";
 import StaffApi from "../../api/staffApi"
 import dichVuApi from "../../api/dichvuApi";
 import TaiKhoanApi from "../../api/taikhoanApi";

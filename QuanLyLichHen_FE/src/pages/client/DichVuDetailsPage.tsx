@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import dichVuApi, { DichVu } from "../../api/dichvuApi";
 import { toast } from "react-toastify";
-import CustomerApi, { Customer } from "../../api/customerApi";
+import CustomerApi from "../../api/customerApi";
 const DichVuDetailsPage = () => {
 
 	//Lấy mã dịch vụ từ URL có dạng /dichvuchitiet/:madv)

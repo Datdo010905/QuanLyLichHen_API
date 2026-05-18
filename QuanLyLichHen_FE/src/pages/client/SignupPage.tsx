@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "../../assets/css/login.css";
 import { Link, useNavigate } from "react-router-dom";
-import authApi from "../../api/authApi"; // Đảm bảo bạn có hàm signup trong authApi
 import { toast } from "react-toastify";
 import customerApi from "../../api/customerApi";
 
